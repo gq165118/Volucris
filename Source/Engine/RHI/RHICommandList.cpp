@@ -135,6 +135,7 @@ namespace volucris
 		if (id > 0)
 		{
 			glBindTexture(GL_TEXTURE_2D, id);
+			GL_CHECK();
 			m_state.texture2d = texture;
 			return true;
 		}
@@ -243,6 +244,7 @@ namespace volucris
 		{
 			return false;
 		}
+		GL_CHECK();
 		if (buffer)
 		{
 			glBindBuffer(getGLTarget(type), buffer->getId());
@@ -317,7 +319,16 @@ namespace volucris
 		setProgram(program);
 		setVertexArray(info.vao);
 		setBuffer(info.ebo);
+		glDrawElements(getGLElementDrawMode(info.segment.mode), info.segment.count, getGLElementType(info.segment.type), (void*)info.segment.offset);
+		GL_CHECK()
+	}
 
+	void RHICommandList::drawPrimitive(RHIProgram* program, const DrawInfo& info, Rect rect)
+	{
+		setProgram(program);
+		setVertexArray(info.vao);
+		setBuffer(info.ebo);
+		glViewport(rect.x, rect.y, rect.width, rect.height);
 		glDrawElements(getGLElementDrawMode(info.segment.mode), info.segment.count, getGLElementType(info.segment.type), (void*)info.segment.offset);
 		GL_CHECK()
 	}

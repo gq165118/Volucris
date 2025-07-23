@@ -19,13 +19,13 @@ namespace volucris
 
 		View(const std::shared_ptr<Scene>& scene);
 
-		~View();
+		virtual ~View();
 
 		void resize(int width, int height);
 
-		void render(RHICommandList* cmdList);
+		virtual void render(RHICommandList* cmdList);
 
-		void swapViewData(RHICommandList* cmdList);
+		virtual void swapViewData(RHICommandList* cmdList);
 
 		Texture::TextureData getViewData() const
 		{

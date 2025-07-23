@@ -98,7 +98,10 @@ namespace volucris
 		ctx->makesureBufferUnset(RHIBuffer::PixelPackBuffer);
 		ctx->makesureBufferUnset(RHIBuffer::PixelUnpackBuffer);
 		ctx->setTexture2D(this);
+		getContext()->makesureBufferUnset(RHIBuffer::PixelPackBuffer);
+		getContext()->makesureBufferUnset(RHIBuffer::PixelUnpackBuffer);
 		glTexImage2D(GL_TEXTURE_2D, 0, getTextureInternalFormat(m_pixelFormat), m_size.width, m_size.height, 0, getTextureFormat(m_sourceFormat), GL_UNSIGNED_BYTE, data.data());
+		GL_CHECK()
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		GL_CHECK()
@@ -112,6 +115,7 @@ namespace volucris
 		ctx->makesureBufferUnset(RHIBuffer::PixelUnpackBuffer);
 		ctx->setTexture2D(this);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, rect.x, rect.y, rect.width, rect.height, GL_RGBA, GL_UNSIGNED_BYTE, data.data());
+		GL_CHECK();
 	}
 
 	std::shared_ptr<RHITexture> RHICreateTexture(const RHITextureDesc& desc)

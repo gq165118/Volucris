@@ -31,7 +31,7 @@ function(auto_add_subdirectories)
                         ${CMAKE_CURRENT_SOURCE_DIR}/${child}
                         ${VOLUCRIS_ENGINE_PRIVATE_INCLUDE}
                     )
-                    target_link_libraries(${child} PRIVATE Engine glfw)
+                    target_link_libraries(${child} PRIVATE Engine glfw stb_image)
                     set_target_properties(${child} PROPERTIES FOLDER "Test")
                     
                     message(STATUS "Added executable: ${child}")

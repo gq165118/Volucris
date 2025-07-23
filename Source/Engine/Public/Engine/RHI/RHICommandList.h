@@ -69,6 +69,8 @@ namespace volucris
 
 		void drawPrimitive(RHIProgram* program, const DrawInfo& info);
 
+		void drawPrimitive(RHIProgram* program, const DrawInfo& info, Rect rect);
+
 		const RHIState& getState() const { return m_state; }
 
 	private:

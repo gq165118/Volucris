@@ -53,10 +53,10 @@ namespace volucris
 
 	struct PrimitiveInfo
 	{
-		std::vector<uint8> data;
-		std::vector<uint8> segmentData;
-		std::vector<PrimitiveBlock> blocks;
-		std::vector<PrimitiveSegment> segments;
+		std::vector<uint8> data;   //存储顶点数据的原始二进制内容（通常包括位置、颜色、法线、纹理坐标等）
+		std::vector<uint8> segmentData;  //存储索引数据（Index Buffer）的原始二进制内容。
+		std::vector<PrimitiveBlock> blocks;  //描述 data 中每种属性的布局（例如位置、颜色、法线等）
+		std::vector<PrimitiveSegment> segments;  //描述如何将索引数组（segmentData）解释为图元（Primitive，如三角形、线段等）。
 		std::vector<std::string> materials;
 
 		template <class Archive>

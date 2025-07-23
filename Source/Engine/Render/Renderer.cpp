@@ -84,5 +84,6 @@ namespace volucris
 		VectorHelp::quickRemoveAllIf<std::unique_ptr<View>>(m_views, [view](const std::unique_ptr<View>& v) {
 			return v.get() == view;
 			});
+		m_views.clear();
 	}
 }
