@@ -255,6 +255,12 @@ namespace volucris
 			{
 				m_view->setTestStaticMesh(mesh->getProxy());
 			}
+
+			if (auto mat = AssetManager::getInstance().loadAsset<Material>("/Engine/Content/Editor/test", GEditorWorld))
+			{
+				m_view->setTestMaterial(mat->getProxy());
+			}
+
 			CreateViewTask task = CreateViewTask(std::move(view), m_size);
 			if (gApp->isRunning())
 			{

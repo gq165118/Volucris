@@ -3,6 +3,7 @@
 #include <RHI/RHIShader.h>
 #include <RHI/RHICommandList.h>
 #include <Render/Renderer.h>
+#include <RHI/RHIUniform.h>
 
 namespace volucris
 {
@@ -28,17 +29,50 @@ namespace volucris
 		for (const auto& parameter : parameters)
 		{
 			auto type = parameter.type;
+			std::unique_ptr<RHIUniform> uniform;
 			switch (type)
 			{
 			case volucris::MaterialParamterType::Float:
+			{
+				auto uni = std::make_unique<RHIUniformFloat>();
+				uni->setValue(std::get<float>(parameter.value));
+				uniform = std::move(uni);
+			}
 				break;
 			case volucris::MaterialParamterType::Vector4:
+			{
+				auto uni = std::make_unique<RHIUniformVec4>();
+				uni->setValue(std::get<glm::vec4>(parameter.value));
+				uniform = std::move(uni);
+			}
 				break;
 			case volucris::MaterialParamterType::Mat4:
+			{
+				auto uni = std::make_unique<RHIUniformMat4>();
+				uni->setValue(std::get<glm::mat4>(parameter.value));
+				uniform = std::move(uni);
+			}
 				break;
 			default:
+				v_check(false)
 				break;
 			}
+			uniform->init(m_program.get(), parameter.name);
+			
+		}
+	}
+
+	RHIProgram* MaterialProxy::getProgram() const
+	{
+		return m_program.get();
+	}
+
+	void MaterialProxy::use(RHICommandList* context)
+	{
+		context->setProgram(m_program.get());
+		for (const auto& uniform : m_uniforms)
+		{
+			uniform->upload();
 		}
 	}
 }

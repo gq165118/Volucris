@@ -2,6 +2,7 @@
 #define __volucris_material_loader_h__
 
 #include <string>
+#include <MaterialEditor/MaterialTemplate.h>
 
 namespace volucris
 {
@@ -16,16 +17,23 @@ namespace volucris
 
 		bool load();
 
+		std::shared_ptr<MaterialTemplate> getMaterial() const { return m_material; }
+
+		const std::string& getAssetName() const { return m_name; }
+
 	private:
 		void init(const std::string& filepath);
 
 		std::string getKey(const std::string& filepath);
+
+		std::string getSource(const std::string& filepath);
 
 	private:
 		std::string m_name;
 		std::string m_vsp;
 		std::string m_fsp;
 		std::string m_key;
+		std::shared_ptr<MaterialTemplate> m_material;
 	};
 }
 

@@ -102,6 +102,7 @@ namespace volucris
 				});
 			rendererCreated(m_imguiRenderer->getCommandList());
 			setFocused(true);
+			glfwShowWindow(m_handle);
 		}
 	}
 

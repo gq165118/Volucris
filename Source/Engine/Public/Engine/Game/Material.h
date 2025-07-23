@@ -13,7 +13,7 @@ namespace volucris
 	public:
 		Material();
 
-		Material(const std::string& vss, const std::string fss);
+		Material(std::string vss, std::string fss);
 
 		template <class Archive>
 		void serialize(Archive& ar, const unsigned int version)
@@ -25,19 +25,31 @@ namespace volucris
 			ar& m_vec4Parameters;
 		}
 
+		bool setFloatParameter(const std::string& name, float value);
+
+		bool setVector4Parameter(const std::string& name, const glm::vec4& value);
+
+		std::string getClassName() const override { return "Material"; }
+
+		std::shared_ptr<MaterialProxy> getProxy();
+
+	protected:
 		MaterialFloatParameter& addParameter(const std::string& name, float value);
 
 		MaterialVector4Parameter& addParameter(const std::string& name, glm::vec4 value);
 
-		bool setFloatParameter(const std::string& name, float value);
-
-		bool setVector4Parameter(const std::string& name, const glm::vec4& value);
+		void clearParameters()
+		{
+			m_floatParameters.clear();
+			m_vec4Parameters.clear();
+		}
 
 	private:
 		std::string m_vss;
 		std::string m_fss;
 		std::vector<MaterialFloatParameter> m_floatParameters;
 		std::vector<MaterialVector4Parameter> m_vec4Parameters;
+		std::weak_ptr<MaterialProxy> m_proxy;
 	};
 }
 

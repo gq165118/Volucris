@@ -8,6 +8,7 @@
 #include <Engine/FileSystem/FileSystem.h>
 #include <Engine/Core/Timer.h>
 #include <Engine/Core/Delegate.h>
+#include <Engine/Asset/AssetData.h>
 
 namespace volucris
 {
@@ -29,6 +30,16 @@ namespace volucris
 		ContentItemWidget(const FileNode& node);
 
 		ContentItemWidget(RHITexture2D* texture, Point iconPos, Size iconSize);
+
+		void setAssetData(const AssetData& asset)
+		{
+			m_assetData = asset;
+		}
+
+		const AssetData& getAssetData() const
+		{
+			return m_assetData;
+		}
 
 		void setTexture(RHITexture2D* texture);
 
@@ -76,6 +87,7 @@ namespace volucris
 		Timer m_timer;
 		bool m_clicked;
 		bool m_editing;
+		AssetData m_assetData;
 	};
 }
 

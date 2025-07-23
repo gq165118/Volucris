@@ -7,6 +7,7 @@
 #include <Engine/RHI/RHIBuffer.h>
 #include <Engine/Core/DataType.h>
 #include <Engine/Core/PrimitiveInfo.h>
+#include "RHIUniform.h"
 
 namespace volucris
 {

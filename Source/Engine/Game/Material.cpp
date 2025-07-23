@@ -1,4 +1,6 @@
 #include <Game/Material.h>
+#include <Render/Renderer.h>
+#include <Render/MaterialProxy.h>
 
 namespace volucris
 {
@@ -6,13 +8,19 @@ namespace volucris
 		: GameObject()
 		, m_vss()
 		, m_fss()
+		, m_floatParameters()
+		, m_vec4Parameters()
+		, m_proxy()
 	{
 	}
 
-	Material::Material(const std::string& vss, const std::string fss)
+	Material::Material(std::string vss, std::string fss)
 		: GameObject()
-		, m_vss(vss)
-		, m_fss(fss)
+		, m_vss(std::move(vss))
+		, m_fss(std::move(fss))
+		, m_floatParameters()
+		, m_vec4Parameters()
+		, m_proxy()
 	{
 	}
 
@@ -54,7 +62,35 @@ namespace volucris
 		return false;
 	}
 
+	std::shared_ptr<MaterialProxy> Material::getProxy()
+	{
+		std::shared_ptr<MaterialProxy> proxy = nullptr;
+		if (!m_proxy.expired())
+		{
+			proxy = m_proxy.lock();
+		}
 
+		if (!proxy)
+		{
+			proxy = std::make_shared<MaterialProxy>();
+			std::vector<MaterialParameterInfo> parameters;
+			for (const auto& parameter : m_floatParameters)
+			{
+				parameters.push_back(parameter.getParameterInfo());
+			}
+
+			for (const auto& parameter : m_vec4Parameters)
+			{
+				parameters.push_back(parameter.getParameterInfo());
+			}
+			Renderer::getInstance().push([proxy, parameters, vss=m_vss, fss=m_fss]() {
+				proxy->setSource(vss, fss);
+				proxy->setParameters(parameters);
+				});
+			m_proxy = proxy;
+		}
+		return proxy;
+	}
 }
 
 BOOST_CLASS_EXPORT_IMPLEMENT(volucris::Material)

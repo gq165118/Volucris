@@ -13,7 +13,8 @@
 #include <Engine/Game/Package.h>
 #include "MeshLoader.h"
 #include <Engine/Game/StaticMesh.h>
-#include "MaterialLoader.h"
+#include "MaterialEditor/MaterialLoader.h"
+#include <MaterialEditor/MaterialEditorWidget.h>
 
 namespace fs = std::filesystem;
 
@@ -67,8 +68,6 @@ namespace volucris
 	{
 		m_folder = folder;
 		m_controlItem = nullptr;
-		
-
 
 		const Icon folderIcon = { { 0, 0 }, { 128,128 } };
 		m_items.clear();
@@ -97,13 +96,24 @@ namespace volucris
 				auto assetData = AssetManager::getInstance().loadAssetData(node.path);
 				if (!assetData.path.empty())
 				{
+					std::unique_ptr<ContentItemWidget> item = nullptr;
 					if (assetData.className == "Texture2D")
 					{
-						m_items.emplace_back(createTextureItem(node.path));
+						item = createTextureItem(node.path);
 					}
 					else if (assetData.className == "StaticMesh")
 					{
-						m_items.emplace_back(createStaticMeshItem(node.path));
+						item = createStaticMeshItem(node.path);
+					}
+					else if (assetData.className == "Material")
+					{
+						item = createTextureItem(node.path);
+					}
+
+					if (item)
+					{
+						item->setAssetData(assetData);
+						m_items.emplace_back(std::move(item));
 					}
 				}
 			}
@@ -291,7 +301,18 @@ namespace volucris
 
 		for (auto& loader : matLoaders)
 		{
-			loader.load();
+			if (loader.load())
+			{
+				auto mat = loader.getMaterial();
+				const auto packageName = getDefaultPackageName(cpath, loader.getAssetName());
+				auto package = std::make_shared<Package>(packageName);
+				package->setObject(mat.get());
+				if (AssetManager::getInstance().registry(package.get()))
+				{
+					AssetManager::getInstance().save(package.get());
+					GEditorWorld->addObject(mat);
+				}
+			}
 		}
 		return true;
 	}
@@ -334,6 +355,15 @@ namespace volucris
 			});
 		item->DoubleClicked.bind([this](ContentItemWidget* clicked) {
 			m_controlItem = clicked;
+			if (m_controlItem->getAssetData().className == "Material")
+			{
+				gApp->pushCommand([]() {
+					auto window = std::make_shared<EditorWindow>();
+					auto widget = std::make_shared<MaterialEditorWidget>();
+					window->addChild(widget);
+					gApp->addWindow(window);
+					});
+			}
 			});
 		return item;
 	}

@@ -76,13 +76,18 @@ namespace volucris
 		{
 			for (const auto& window : m_windows)
 			{
+				setFocusedWindow(window.get());
 				window->destroyImGuiRenderer();
 			}
 
 			for (const auto& window : m_windows)
 			{
-				window->destroy();
+				if (window != m_mainWindow)
+				{
+					window->destroy();
+				}
 			}
+
 			setFocusedWindow(nullptr);
 			m_windows.clear();
 		}

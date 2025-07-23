@@ -8,8 +8,9 @@
 
 namespace volucris
 {
-	class RHICmdList;
+	class RHIUniform;
 	class RHIProgram;
+	class RHICommandList;
 
 	class MaterialProxy : public Object
 	{
@@ -20,8 +21,13 @@ namespace volucris
 
 		void setParameters(const std::vector<MaterialParameterInfo>& parameters);
 
+		RHIProgram* getProgram() const;
+
+		void use(RHICommandList* context);
+
 	private:
 		std::unique_ptr<RHIProgram> m_program;
+		std::vector<std::unique_ptr<RHIUniform>> m_uniforms;
 	};
 }
 

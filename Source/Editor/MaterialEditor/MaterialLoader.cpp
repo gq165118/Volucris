@@ -1,6 +1,8 @@
 #include "MaterialLoader.h"
 #include <filesystem>
 #include <EditorCore/Editor.h>
+#include "GLSLParser.h"
+#include <fstream>
 
 namespace fs = std::filesystem;
 
@@ -44,9 +46,13 @@ namespace volucris
 
 	bool MaterialLoader::load()
 	{
-		V_LOG_DEBUG(Editor, "load material");
-		V_LOG_DEBUG(Editor, "{}", m_vsp)
-		V_LOG_DEBUG(Editor, "{}", m_fsp)
+		auto vss = getSource(m_vsp);
+		auto fss = getSource(m_fsp);
+		if (!vss.empty() && !fss.empty())
+		{
+			m_material = std::make_shared<MaterialTemplate>(std::move(vss), std::move(fss));
+			return true;
+		}
 		return false;
 	}
 
@@ -64,5 +70,16 @@ namespace volucris
 			return (p.parent_path() / p.stem()).generic_u8string();
 		}
 		return p.generic_u8string();
+	}
+
+	std::string MaterialLoader::getSource(const std::string& filepath)
+	{
+		std::string source;
+		std::ifstream fin(filepath);
+		if (!fin.is_open())
+		{
+			return "";
+		}
+		return std::string(std::istreambuf_iterator<char>(fin), std::istreambuf_iterator<char>());
 	}
 }

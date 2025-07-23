@@ -12,36 +12,12 @@
 #include <glm/glm.hpp>
 #include <glad/glad.h>
 #include <Render/StaticMeshProxy.h>
+#include <Render/MaterialProxy.h>
 
 constexpr int FrameCount = 2;
 
 namespace volucris
 {
-	static std::shared_ptr<RHIProgram> shader = nullptr;
-
-	static uint32 indices[] = {
-		0, 1, 2, 0, 2, 3
-	};
-
-	static char* vss = R"(
-		#version 430 core
-		layout(location=0) in vec3 v_pos;
-		layout(location=2) in vec3 v_color;
-
-		layout(location=0) out vec3 vertexColor;
-		void main() {
-			gl_Position=vec4(v_pos * 10.f, 1.0);
-			vertexColor = v_color;
-		}
-	)";
-
-	static char* fss = R"(
-		#version 430 core
-		layout (location=0) in vec3 vertexColor;
-		layout (location=0) out vec4 color;
-		void main() {  color = vec4(vertexColor, 1.0); }
-	)";
-
 	View::View()
 		: m_targets()
 		, m_targetReaders()
@@ -49,6 +25,7 @@ namespace volucris
 		, m_current(0)
 		, m_scene(nullptr)
 		, m_mesh(nullptr)
+		, m_material(nullptr)
 	{
 	}
 
@@ -69,18 +46,6 @@ namespace volucris
 
 	void View::resize(int width, int height)
 	{
-		if (!shader)
-		{
-			auto vs = std::make_shared<RHIShader>(RHIShader::VertexShader);
-			vs->init(vss);
-
-			auto fs = std::make_shared<RHIShader>(RHIShader::FragmentShader);
-			fs->init(fss);
-
-			shader = std::make_shared<RHIProgram>();
-			shader->init({ vs, fs });
-		}
-
 		if (width <= 8 || height <= 8)
 		{
 			width = height = 8;
@@ -146,11 +111,12 @@ namespace volucris
 		state.color = { 0.0, 0.8, 1.0, 1.0 };
 		cmdList->clear(state);
 
-		if (m_mesh)
+		if (m_mesh && m_material)
 		{
+			m_material->use(RHICmdList);
 			for (const auto& info : m_mesh->getDrawInfos())
 			{
-				RHICmdList->drawPrimitive(shader.get(), info);
+				RHICmdList->drawPrimitive(m_material->getProgram(), info);
 			}
 		}
 

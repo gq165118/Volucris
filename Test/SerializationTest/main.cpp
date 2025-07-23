@@ -12,7 +12,7 @@
 #include <Engine/Core/TextureDefines.h>
 #include <Engine/Core/Assert.h>
 #include <Engine/Game/MeshElements.h>
-#include <Engine/Game/StaticMesh.h>
+#include <Engine/Game/Material.h>
 
 VOLUCRIS_STATIC_LOG(Serialization, Trace)
 
@@ -21,10 +21,9 @@ using namespace volucris;
 
 int main()
 {
-    StaticMesh mesh;
-	mesh.addSubMesh(std::make_unique<LargeMeshElements>());
+	Material mat;
 	std::ofstream fout("D:\\Projects\\Volucris\\Binaries\\a.bin", std::ios::binary | std::ios::trunc);
 	boost::archive::binary_oarchive oa(fout);
 
-	oa << &mesh;
+	oa << &mat;
 }

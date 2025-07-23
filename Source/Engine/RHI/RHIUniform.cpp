@@ -12,18 +12,18 @@ namespace volucris
 		return m_location >= 0;
 	}
 
-	void RHIUniformFloat::setValue(float value)
+	void RHIUniformFloat::upload() const
 	{
-		glUniform1f(m_location, value);
+		glUniform1f(m_location, m_value);
 	}
 
-	void RHIUniformVec4::setValue(const glm::vec4& value)
+	void RHIUniformVec4::upload() const
 	{
-		glUniform4fv(m_location, 1, glm::value_ptr(value));
+		glUniform4fv(m_location, 1, glm::value_ptr(m_value));
 	}
 
-	void RHIUniformMat4::setValue(const glm::mat4& value)
+	void RHIUniformMat4::upload() const
 	{
-		glUniformMatrix4fv(m_location, 1, false, glm::value_ptr(value));
+		glUniformMatrix4fv(m_location, 1, false, glm::value_ptr(m_value));
 	}
 }
