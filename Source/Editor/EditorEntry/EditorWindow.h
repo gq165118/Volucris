@@ -2,6 +2,7 @@
 #define __volucris_editor_window_h__
 
 #include <Engine/Application/Window.h>
+#include <Engine/Core/TextureDefines.h>
 
 namespace volucris
 {
@@ -41,9 +42,14 @@ namespace volucris
 
 		void onRendererDestroy(RHICommandList* cmdList) override;
 
+		//测试用
+		void setViewData(Texture::TextureData data);
+
 	private:
 		std::unique_ptr<RHITexture2D> m_iconTexture;
 		std::unique_ptr<StaticMesh> m_quadMesh;
+
+		RHICommandList* m_cmdList;
 	};
 }
 

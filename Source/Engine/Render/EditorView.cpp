@@ -128,7 +128,6 @@ namespace volucris
 			shader = std::make_shared<RHIProgram>();
 			shader->init({ vs, fs });
 		}
-
 		for (auto& target : m_targets)
 		{
 			RHICmdList->unsetRenderTarget(target.get());
@@ -166,7 +165,7 @@ namespace volucris
 			RHICmdList->setRenderTarget(target.get());
 			target->attachColor(texture, 0);
 			v_check(target->update())
-				m_targets.emplace_back(std::move(target));
+			m_targets.emplace_back(std::move(target));
 
 			// 创建读取缓冲
 			auto reader = std::make_unique<RHIReadPixelBuffer>(RHIBuffer::StreamRead);

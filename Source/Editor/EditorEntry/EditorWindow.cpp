@@ -4,13 +4,16 @@
 #include <imgui_internal.h>
 #include <MaterialEditor/MaterialEditorWidget.h>
 #include <Viewport/ViewportWidget.h>
+#include <Engine/Game/GameWorld.h>
 #include <EditorEntry/LogWidget.h>
 #include <ContentBrowser/ContentBrowserWidget.h>
 #include <Engine/RHI/RHITexture.h>
 #include <Engine/Asset/AssetManager.h>
 #include <Engine/Game/Texture2D.h>
 #include "EditorApplication.h"
-#include <Engine/Game/GameWorld.h>
+#include "Engine/Render/EditorView.h"
+#include <Engine/Render/Renderer.h>
+#include <Engine/Core/Task.h>
 
 #include <stb_image/stb_image_write.h>
 #include <Engine/FileSystem/FileSystem.h>
@@ -28,6 +31,46 @@ namespace fs = std::filesystem;
 
 namespace volucris
 {
+    struct CreateEditorViewTask
+    {
+        mutable std::unique_ptr<EditorView> view;
+        Size size;
+        EditorWindow* client;
+
+        CreateEditorViewTask(std::unique_ptr<EditorView> v, Size s)
+            : view(std::move(v)), size(s), client(nullptr) {}
+
+        CreateEditorViewTask(const CreateEditorViewTask& task)
+        {
+            view = std::move(task.view);
+            size = task.size;
+            client = nullptr;
+        }
+
+        CreateEditorViewTask(CreateEditorViewTask&& task) noexcept
+            : view(std::move(task.view)), size(task.size), client(task.client)
+        {
+        }
+
+        void execute()
+        {
+            //view->resize(size.width, size.height);
+            view->buildData();
+            auto v = view.get();
+            Renderer::getInstance().addView(std::move(view));
+            Renderer::getInstance().renderFrame();
+            Renderer::getInstance().renderFrame();
+            if (client)
+            {
+                auto data = v->getViewData();
+                gApp->pushCommand([client = client, data = std::move(data)]() {
+                    client->setViewData(std::move(data));
+                    });
+            }
+        }
+    };
+
+
     MainWidget::MainWidget()
         : Widget()
         , m_viewport(std::make_shared<ViewportWidget>())
@@ -190,11 +233,35 @@ namespace volucris
 
 	void EditorWindow::onRendererBuild(RHICommandList* cmdList)
 	{
-		ImGuiIO& io = ImGui::GetIO();
+        ImGuiIO& io = ImGui::GetIO();
 
+        //测试绘制fbo使用
+        //{
+        //    m_cmdList = cmdList;
+        //    {
+        //        auto view = std::make_unique<EditorView>();
+        //        CreateEditorViewTask task = CreateEditorViewTask(std::move(view), Size(128, 128));
+        //        //if (gApp->isRunning())
+        //        {
+        //            task.client = this;
+        //        }
+        //        Renderer::getInstance().push(createTask(std::move(task)));
+        //        //recreateUploaders(context);
+        //
+        //        if (gApp->isRunning())
+        //        {
+        //            Renderer::getInstance().flushCommands();
+        //            gApp->flushCommmands();
+        //        }
+        //
+        //    }
+        //}
+       
+        Texture2D t;
         if (auto texture = AssetManager::getInstance().loadAsset<Texture2D>("/Engine/Content/Editor/Textures/T_Icons", GEditorWorld))
         {
-            const auto& data = texture->getTextureData();
+            const auto data = texture->getTextureData();
+            //const auto data = m_data;  //texture->getTextureData();
             RHITextureDesc desc;
             desc.size = data.size;
             desc.sourceFormat = data.format;
@@ -205,10 +272,35 @@ namespace volucris
             m_iconTexture->createGpuResource();
             m_iconTexture->init(data.data);
         }
+
+       
 	}
 
     void EditorWindow::onRendererDestroy(RHICommandList* cmdList)
     {
         m_iconTexture = nullptr;
+    }
+
+    //测试绘制fbo使用
+    void EditorWindow::setViewData(Texture::TextureData data)
+    {
+        //m_data = std::make_shared<Texture::TextureData>(data);
+ 
+       RHITextureDesc desc;
+       //Rect rect(0, 0, 128, 128);
+       //m_iconTexture->update(rect, data.data);
+       
+       desc.size = data.size;
+       //desc.size = data->size;
+       desc.sourceFormat = data.format;
+       //desc.sourceFormat = data->format;
+       desc.pixelFormat = Texture::EPixelFormat::R8G8B8A8;
+       desc.texClass = TextureType::Texture2D;
+       m_iconTexture = std::make_unique<RHITexture2D>(desc);
+       m_iconTexture->setContext(m_cmdList);
+       m_iconTexture->createGpuResource();
+       //m_iconTexture->init();
+       //m_iconTexture->update({0,0,128,128}, data.data);
+       m_iconTexture->init(data.data);
     }
 }
