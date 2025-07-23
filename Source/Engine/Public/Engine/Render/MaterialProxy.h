@@ -21,6 +21,8 @@ namespace volucris
 
 		void setParameters(const std::vector<MaterialParameterInfo>& parameters);
 
+		void update(const std::vector<MaterialParameterUpdateInfo>& parameters);
+
 		RHIProgram* getProgram() const;
 
 		void use(RHICommandList* context);

@@ -9,6 +9,8 @@ namespace volucris
         size_t pos = 0;
         while ((pos = source.find("//", pos)) != std::string::npos) {
             size_t end = source.find('\n', pos);
+            std::string comment = source.substr(pos, end - pos);
+            parseComment(comment);
             source.erase(pos, end - pos);
         }
 
@@ -54,6 +56,70 @@ namespace volucris
         return result;
     }
 
+    void GLSLParser::parseComment(const std::string& comment)
+    {
+        size_t attrStart = 0;
+        size_t attrEnd = 0;
+        size_t equalsSignPos = 0;
+        while ((equalsSignPos = comment.find("=", attrStart)) != std::string::npos)
+        {
+            attrEnd = equalsSignPos+1;
+            while (attrEnd < comment.size() && std::isspace(comment[attrEnd])) attrEnd++;
+            size_t vstart = attrEnd;
+            while (attrEnd < comment.size() && !std::isspace(comment[attrEnd])) attrEnd++;
+            std::string value = comment.substr(vstart, attrEnd-vstart);
+            if (value.empty()) continue;
+
+            vstart = attrStart;
+            while (vstart < equalsSignPos && std::isspace(comment[vstart])) vstart++;
+            size_t vend = equalsSignPos;
+            while (vend > vstart && std::isspace(comment[vend])) vend--;
+
+            attrStart = attrEnd + 1;
+
+            std::string attr = comment.substr(vstart, vend - vstart);
+            size_t dotPos = attr.find(".");
+            if (dotPos == std::string::npos)
+            {
+                continue;
+            }
+
+            vend = dotPos;
+            //while (vend > 0 && std::isspace(attr[vend])) vend--;
+            vstart = vend;
+            while (vstart > 0 && !std::isspace(attr[vstart])) vstart--;
+            if (std::isspace(attr[vstart])) vstart++;
+            std::string uname = attr.substr(vstart, vend-vstart);
+
+            vstart = dotPos + 1;
+            while (vstart < attr.size() && std::isspace(attr[vstart])) vstart++;
+            vend = vstart;
+            while (vend < attr.size() && !std::isspace(attr[vend])) vend++;
+            std::string propertyName = attr.substr(vstart, vend);
+            if (uname.empty() || propertyName.empty())
+            {
+                continue;
+            }
+
+            auto it = m_properties.find(uname);
+            if (it == m_properties.end())
+            {
+                m_properties[uname] = {};
+                it = m_properties.insert({ uname, {} }).first;
+            }
+            UniformProperty& property = it->second;
+
+            if (propertyName == "group")
+            {
+                property.group = value;
+            }
+            else if (propertyName == "display_name")
+            {
+                property.displayName = value;
+            }
+        }
+    }
+
     void GLSLParser::parseUniforms(const std::string& source)
     {
         size_t start = 0;
@@ -97,6 +163,7 @@ namespace volucris
                     varEnd = members.find(";", varStart);
                 }
                 m_uniformBlocks.push_back(block);
+                start = memberEnd + 1;
             }
             else
             {
@@ -109,86 +176,8 @@ namespace volucris
                 {
                     m_uniforms.push_back(uniform);
                 }
+                start = semicolon + 1;
             }
-
-
-            //// 找到分号结束
-            //size_t semicolon = source.find(';', declStart);
-            //if (semicolon == std::string::npos) break;
-
-            //// 获取声明内容
-            //std::string declaration = source.substr(declStart, semicolon - declStart);
-
-            //// 检查是否是结构体类型
-            //bool isStruct = false;
-            //for (const auto& [structName, _] : m_structDefs) {
-            //    if (declaration.find(fmt::format("struct {}", str)) != 0) {
-            //        isStruct = true;
-            //        break;
-            //    }
-            //}
-
-            //if (isStruct) {
-            //    // 解析结构体uniform
-            //    size_t nameStart = 0;
-            //    while (nameStart < declaration.size() && std::isspace(declaration[nameStart])) nameStart++;
-
-            //    size_t nameEnd = nameStart;
-            //    while (nameEnd < declaration.size() && !std::isspace(declaration[nameEnd])) nameEnd++;
-            //    std::string structType = declaration.substr(nameStart, nameEnd - nameStart);
-
-            //    size_t instanceStart = nameEnd;
-            //    while (instanceStart < declaration.size() && std::isspace(declaration[instanceStart])) instanceStart++;
-
-            //    size_t instanceEnd = instanceStart;
-            //    while (instanceEnd < declaration.size() && (std::isalnum(declaration[instanceEnd]) || declaration[instanceEnd] == '_')) instanceEnd++;
-            //    std::string instanceName = declaration.substr(instanceStart, instanceEnd - instanceStart);
-
-            //    // 检查数组声明
-            //    int arraySize = 0;
-            //    if (instanceEnd < declaration.size() && declaration[instanceEnd] == '[') {
-            //        size_t arrayStart = instanceEnd + 1;
-            //        size_t arrayEnd = declaration.find(']', arrayStart);
-            //        if (arrayEnd != std::string::npos) {
-            //            arraySize = std::stoi(declaration.substr(arrayStart, arrayEnd - arrayStart));
-            //        }
-            //    }
-
-            //    if (m_structDefs.find(structType) != m_structDefs.end()) {
-            //        m_uniformStructs.push_back({
-            //            structType,
-            //            instanceName,
-            //            m_structDefs[structType]
-            //            });
-            //    }
-            //}
-            //else {
-            //    // 解析基本uniform
-            //    size_t typeEnd = 0;
-            //    while (typeEnd < declaration.size() && !std::isspace(declaration[typeEnd])) typeEnd++;
-            //    std::string type = declaration.substr(0, typeEnd);
-
-            //    size_t nameStart = typeEnd;
-            //    while (nameStart < declaration.size() && std::isspace(declaration[nameStart])) nameStart++;
-
-            //    size_t nameEnd = nameStart;
-            //    while (nameEnd < declaration.size() && (std::isalnum(declaration[nameEnd]) || declaration[nameEnd] == '_')) nameEnd++;
-            //    std::string name = declaration.substr(nameStart, nameEnd - nameStart);
-
-            //    // 检查数组声明
-            //    int arraySize = 0;
-            //    if (nameEnd < declaration.size() && declaration[nameEnd] == '[') {
-            //        size_t arrayStart = nameEnd + 1;
-            //        size_t arrayEnd = declaration.find(']', arrayStart);
-            //        if (arrayEnd != std::string::npos) {
-            //            arraySize = std::stoi(declaration.substr(arrayStart, arrayEnd - arrayStart));
-            //        }
-            //    }
-
-            //    m_uniforms.push_back({ type, name, arraySize });
-            //}
-
-            start =  start + 1;
         }
     }
 
@@ -217,7 +206,17 @@ namespace volucris
             }
         }
 
-        uniform = { type, name, arraySize };
+        auto it = m_properties.find(name);
+        if (it != m_properties.end())
+        {
+            uniform = {it->second, type, name, arraySize };
+        }
+        else
+        {
+            uniform = { {}, type, name, arraySize };
+        }
+
+        
         return true;
     }
 }

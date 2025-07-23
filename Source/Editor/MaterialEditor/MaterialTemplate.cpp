@@ -24,6 +24,19 @@ namespace volucris
 		updateUniforms();
 	}
 
+	bool MaterialTemplate::findProperty(const std::string& name, UniformProperty& property)
+	{
+		for (const auto& uniform : m_uniforms)
+		{
+			if (uniform.name == name)
+			{
+				property = uniform.property;
+				return true;
+			}
+		}
+		return false;
+	}
+
 	bool MaterialTemplate::parseTemplate(std::string vss, std::string fss)
 	{
 		m_uniforms.clear();

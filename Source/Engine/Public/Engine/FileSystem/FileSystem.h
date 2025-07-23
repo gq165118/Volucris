@@ -57,6 +57,8 @@ namespace volucris
 
 		bool directoryExists(const std::string& virtualPath);
 
+		void renameDirectory(const std::string& oldPath, const std::string& newPath);
+
 		std::string virtualToPhysical(const std::string& virtualPath);
 
 		std::string physicalToVirtual (const std::string& physicalPath);
@@ -69,6 +71,8 @@ namespace volucris
 
 		// 删除文件
 		bool deleteFile(const std::string& virtualPath);
+
+		bool deleteAsset(const std::string& virtualPath);
 
 		// 创建文件夹
 		bool createDirectory(const std::string& virtualPath);

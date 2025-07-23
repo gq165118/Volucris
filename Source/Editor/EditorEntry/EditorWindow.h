@@ -42,7 +42,7 @@ namespace volucris
 
 		void onRendererDestroy(RHICommandList* cmdList) override;
 
-		//测试用
+		//������
 		void setViewData(Texture::TextureData data);
 
 	private:
@@ -50,6 +50,7 @@ namespace volucris
 		std::unique_ptr<StaticMesh> m_quadMesh;
 
 		RHICommandList* m_cmdList;
+		std::string m_iniFileName;
 	};
 }
 

@@ -58,7 +58,29 @@ namespace volucris
 				break;
 			}
 			uniform->init(m_program.get(), parameter.name);
-			
+			m_uniforms.push_back(std::move(uniform));
+		}
+	}
+
+	void MaterialProxy::update(const std::vector<MaterialParameterUpdateInfo>& parameters)
+	{
+		for (const auto& parameter : parameters)
+		{
+			auto& uniform = m_uniforms[parameter.id];
+			auto type = parameter.type;
+			switch (type)
+			{
+			case volucris::MaterialParamterType::Float:
+				dynamic_cast<RHIUniformFloat*>(uniform.get())->setValue(std::get<float>(parameter.value));
+				break;
+			case volucris::MaterialParamterType::Vector4:
+				dynamic_cast<RHIUniformVec4*>(uniform.get())->setValue(std::get<glm::vec4>(parameter.value));
+				break;
+			case volucris::MaterialParamterType::Mat4:
+				break;
+			default:
+				break;
+			}
 		}
 	}
 

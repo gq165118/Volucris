@@ -23,12 +23,14 @@ namespace volucris
 	static std::string getDefaultPackageName(const fs::path& dirpath, const std::string& name)
 	{
 		std::string packageName = (dirpath / name).generic_u8string();
-		if (gFileSystem.fileExists(packageName) || AssetManager::getInstance().isPackageRegistered(packageName))
+		std::string assetName = fmt::format("{}.asset", packageName);
+		if (gFileSystem.fileExists(assetName) || AssetManager::getInstance().isPackageRegistered(packageName))
 		{
 			for (size_t i = 1; i < std::numeric_limits<size_t>::max(); ++i)
 			{
 				packageName = (dirpath / fmt::format("{}_{}", name, i)).generic_u8string();
-				if (!gFileSystem.fileExists(packageName) || AssetManager::getInstance().isPackageRegistered(packageName))
+				assetName = fmt::format("{}.asset", packageName);
+				if (!gFileSystem.fileExists(assetName) && !AssetManager::getInstance().isPackageRegistered(packageName))
 				{
 					break;
 				}
@@ -75,7 +77,9 @@ namespace volucris
 			auto parentNode = gFileSystem.parentNode(folder);
 			if (!parentNode.path.empty())
 			{
-				m_items.emplace_back(createFolderItem(parentNode.path, ".."));
+				auto item = createFolderItem(parentNode.path, "..");
+				item->setSelectable(false);
+				m_items.emplace_back(std::move(item));
 			}
 		}
 
@@ -133,6 +137,7 @@ namespace volucris
 
 		ContentItemWidget* clickedItem = nullptr;
 		ContentItemWidget* selectItem = nullptr;
+		bool deleteOperation = false;
 		for (int i = 0; i < m_items.size(); ++i) {
 			ImGui::PushID(i);
 			m_items[i]->build();
@@ -146,12 +151,18 @@ namespace volucris
 				selectItem = m_items[i].get();
 			}
 
+			if (m_items[i]->isDeleteSelected())
+			{
+				deleteOperation = true;
+			}
+
 			ImGui::NextColumn();
 			ImGui::PopID();
 		}
 		ImGui::Columns(1); // 结束列
 
 		bool createFolder = false;
+		bool refreshFolder = false;
 		if (ImGui::BeginPopupContextWindow("ContentContext", 
 			ImGuiPopupFlags_NoOpenOverItems |
 			ImGuiPopupFlags_MouseButtonRight))
@@ -160,14 +171,16 @@ namespace volucris
 			{
 				item->setSelected(false);
 			}
+			ImGui::SeparatorText("Folder");
+			if (ImGui::MenuItem("Refresh"))
+			{
+				refreshFolder = true;
+			}
 
-			if (ImGui::MenuItem("Create Folder")) 
+			if (ImGui::MenuItem("Create")) 
 			{
 				createFolder = true;
 			}
-			if (ImGui::MenuItem("选项2")) { /* 处理选项2点击 */ }
-			ImGui::Separator();
-			if (ImGui::MenuItem("关闭")) { /* 处理关闭操作 */ }
 			ImGui::EndPopup();
 		}
 
@@ -182,13 +195,37 @@ namespace volucris
 			}
 		}
 
+		if (refreshFolder)
+		{
+			setCurrentFolder(m_folder);
+		}
+
 		if (createFolder)
 		{
 			auto crtPath = fs::path(m_folder);
 			auto folderName = getDefaultFolderName(crtPath, "New Folder");
 			const auto path = crtPath / folderName;
 			auto item = createFolderItem(path.generic_u8string());
+			item->setSelected(true);
+			item->setEditing(true);
 			m_items.push_back(std::move(item));
+		}
+
+		if (deleteOperation)
+		{
+			std::vector<std::unique_ptr<ContentItemWidget>> items;
+			for (auto& item : m_items)
+			{
+				if (item->isSelected())
+				{
+					deleteItem(item.get());
+				}
+				else
+				{
+					items.push_back(std::move(item));
+				}
+			}
+			m_items = std::move(items);
 		}
 	}
 
@@ -341,6 +378,7 @@ namespace volucris
 		{
 			item->setDisplayName(name);
 		}
+
 		item->Clicked.bind([this](ContentItemWidget* clicked) {
 			if (!m_multiSelect)
 			{
@@ -353,16 +391,28 @@ namespace volucris
 				}
 			}
 			});
+
 		item->DoubleClicked.bind([this](ContentItemWidget* clicked) {
 			m_controlItem = clicked;
-			if (m_controlItem->getAssetData().className == "Material")
+			((EditorApplication*)gApp)->openEditor(m_controlItem->getAssetData());
+			});
+
+		item->NodeNameChanged.bind([this](ContentItemWidget* item, const FileNode& node) {
+			if (node.type == EFileType::Directory)
 			{
-				gApp->pushCommand([]() {
-					auto window = std::make_shared<EditorWindow>();
-					auto widget = std::make_shared<MaterialEditorWidget>();
-					window->addChild(widget);
-					gApp->addWindow(window);
-					});
+				if (gFileSystem.directoryExists(item->getFileNode().path))
+				{
+					gFileSystem.renameDirectory(item->getFileNode().path, node.path);
+				}
+				else
+				{
+					gFileSystem.createDirectory(node.path);
+				}
+				item->setFileNode(node);
+			}
+			else
+			{
+				
 			}
 			});
 		return item;
@@ -384,6 +434,19 @@ namespace volucris
 		node.type = EFileType::Asset;
 		Icon icon = { {2,0}, {128,128} };
 		return createItem(node, icon);
+	}
+
+	void ContentWidget::deleteItem(ContentItemWidget* item)
+	{
+		if (item->getFileNode().type == EFileType::Directory)
+		{
+			gFileSystem.deleteDirectory(item->getFileNode().path);
+		}
+		else
+		{
+			AssetManager::getInstance().unregister(item->getFileNode().path);
+			gFileSystem.deleteAsset(item->getFileNode().path);
+		}
 	}
 
 	std::unique_ptr<ContentItemWidget> ContentWidget::createTextureItem(const std::string& path)

@@ -44,6 +44,8 @@ namespace volucris
 
 		std::unique_ptr<ContentItemWidget> createStaticMeshItem(const std::string& path);
 
+		void deleteItem(ContentItemWidget* item);
+
 	private:
 		float m_scale;
 		glm::vec2 m_itemSize;

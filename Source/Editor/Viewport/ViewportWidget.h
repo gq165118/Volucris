@@ -12,6 +12,7 @@ namespace volucris
 	class RHITexture2D;
 	class RHICommandList;
 	class RHIWritePixelBuffer;
+	class Material;
 
 	class ViewportWidget : public Widget
 	{
@@ -21,6 +22,8 @@ namespace volucris
 		void setWorld(const std::shared_ptr<GameWorld>& world);
 
 		void setViewData(Texture::TextureData data);
+
+		void setTestMaterial(const std::shared_ptr<Material>& material);
 
 	protected:
 		void onBuild(bool init) override;
@@ -52,6 +55,7 @@ namespace volucris
 
 	private:
 		std::shared_ptr<GameWorld> m_world;
+		std::shared_ptr<Material> m_material;
 	};
 }
 

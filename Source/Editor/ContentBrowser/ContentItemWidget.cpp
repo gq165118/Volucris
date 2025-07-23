@@ -70,6 +70,8 @@ namespace volucris
 		, m_text()
 		, m_clicked(false)
 		, m_editing(false)
+		, m_deleteSelected(false)
+		, m_selectable(true)
 	{
 		setScale(1.0);
 	}
@@ -77,8 +79,7 @@ namespace volucris
 	ContentItemWidget::ContentItemWidget(const FileNode& node)
 		: ContentItemWidget()
 	{
-		m_node = node;
-		setDisplayName(fs::path(m_node.path).stem().generic_string());
+		setFileNode(node);
 	}
 
 	ContentItemWidget::ContentItemWidget(RHITexture2D* texture, Point iconPos, Size iconSize)
@@ -86,6 +87,12 @@ namespace volucris
 	{
 		setIcon(iconPos, iconSize);
 		setTexture(texture);
+	}
+
+	void ContentItemWidget::setFileNode(const FileNode& node)
+	{
+		m_node = node;
+		setDisplayName(fs::path(m_node.path).stem().generic_string());
 	}
 
 	void ContentItemWidget::setTexture(RHITexture2D* texture)
@@ -169,7 +176,7 @@ namespace volucris
 				Clicked.invoke(this);
 			}
 		}
-		else if (ImGui::BeginPopupContextItem())
+		else if (m_selectable && ImGui::BeginPopupContextItem())
 		{
 			m_selected = true;
 			Clicked.invoke(this);
@@ -177,9 +184,10 @@ namespace volucris
 			{
 				m_editing = true;
 			}
-			if (ImGui::MenuItem("Delete")) { /* 处理选项2点击 */ }
-			ImGui::Separator();
-			if (ImGui::MenuItem("关闭")) { /* 处理关闭操作 */ }
+			if (ImGui::MenuItem("Delete"))
+			{
+				m_deleteSelected = true;
+			}
 			ImGui::EndPopup();
 		}
 
@@ -190,7 +198,7 @@ namespace volucris
 				IM_COL32(82, 82, 82, 255)
 			);
 		}
-		else if (m_selected)
+		else if (isSelected())
 		{
 			window->DrawList->AddRectFilled(
 				cursorPos, { cursorPos.x + m_size.x, cursorPos.y + m_size.y },
@@ -225,6 +233,17 @@ namespace volucris
 			{
 				if (!ImGui::IsItemActive()) {
 					ImGui::ActivateItemByID(ImGui::GetItemID());
+				}
+				std::string name = m_text;
+				if (name.empty())
+				{
+					setDisplayName(fs::path(m_node.path).stem().generic_string());
+				}
+				else
+				{
+					FileNode node = m_node;
+					node.path = (fs::path(m_node.path).parent_path() / name).generic_u8string();
+					NodeNameChanged.invoke(this, node);
 				}
 				m_editing = false;
 			}

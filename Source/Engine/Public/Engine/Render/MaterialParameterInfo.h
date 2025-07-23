@@ -15,6 +15,13 @@ namespace volucris
 		Mat4
 	};
 
+	struct MaterialParameterUpdateInfo
+	{
+		size_t id = 0;
+		MaterialParamterType type = MaterialParamterType::Float;
+		std::variant<float, glm::vec4, glm::mat4> value;
+	};
+
 	struct MaterialParameterInfo
 	{
 		std::string name;

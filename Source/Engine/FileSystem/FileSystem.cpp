@@ -78,6 +78,13 @@ namespace volucris
 		return false;
 	}
 
+	void FileSystem::renameDirectory(const std::string& oldPath, const std::string& newPath)
+	{
+		auto oldPhysicalPath = virtualToPhysical(oldPath);
+		auto newPhysicalPath = virtualToPhysical(newPath);
+		fs::rename(oldPath, newPath);
+	}
+
 	std::string FileSystem::virtualToPhysical(const std::string& virtualPath)
 	{
 		if (auto point = findMountPoint(virtualPath))
@@ -192,6 +199,23 @@ namespace volucris
 
 		fs::path path = physicalPath;
 		if (!fs::exists(path) || !fs::is_regular_file(path))
+		{
+			return false;
+		}
+
+		return fs::remove(path);
+	}
+
+	bool FileSystem::deleteAsset(const std::string& virtualPath)
+	{
+		auto physicalPath = virtualToPhysical(virtualPath);
+		if (physicalPath.empty())
+		{
+			return false;
+		}
+
+		fs::path path = fmt::format("{}.asset", physicalPath);
+		if (!fs::exists(path) || fs::is_directory(path))
 		{
 			return false;
 		}

@@ -22,6 +22,8 @@ namespace volucris
 			ar& m_uniformBlocks;
 		}
 
+		bool findProperty(const std::string& name, UniformProperty& property);
+
 	private:
 		bool parseTemplate(std::string vss, std::string fss);
 

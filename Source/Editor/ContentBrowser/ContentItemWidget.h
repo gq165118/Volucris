@@ -16,6 +16,7 @@ namespace volucris
 	class ContentItemWidget;
 
 	DECLARE_EVENT_DELEGATE(ItemEvent, void, ContentItemWidget*)
+	DECLARE_EVENT_DELEGATE(ItemNodeEvent, void, ContentItemWidget*, const FileNode&)
 
 	class ContentItemWidget
 	{
@@ -23,6 +24,7 @@ namespace volucris
 		ItemEvent Clicked;
 		ItemEvent DoubleClicked;
 		ItemEvent ContextMenuTriggered;
+		ItemNodeEvent NodeNameChanged;
 
 	public:
 		ContentItemWidget();
@@ -30,6 +32,8 @@ namespace volucris
 		ContentItemWidget(const FileNode& node);
 
 		ContentItemWidget(RHITexture2D* texture, Point iconPos, Size iconSize);
+
+		void setFileNode(const FileNode& node);
 
 		void setAssetData(const AssetData& asset)
 		{
@@ -51,7 +55,7 @@ namespace volucris
 
 		bool isClicked() const { return m_clicked; }
 
-		bool isSelected() const { return m_selected; }
+		bool isSelected() const { return m_selectable && m_selected; }
 
 		static glm::vec2 getItemSize(float scale = 1.0);
 
@@ -59,11 +63,17 @@ namespace volucris
 
 		void setSelected(bool selected) { m_selected = selected; }
 
+		void setSelectable(bool selectable) { m_selectable = selectable; }
+
 		void setClicked(bool clicked) { m_clicked = clicked; }
+
+		void setEditing(bool editing) { m_editing = editing; }
 
 		void setDisplayName(const std::string& name);
 
 		void enableNameEdit(bool editing) { m_editing = editing; }
+
+		bool isDeleteSelected() const { return m_deleteSelected; }
 
 	private:
 		void update();
@@ -88,6 +98,8 @@ namespace volucris
 		bool m_clicked;
 		bool m_editing;
 		AssetData m_assetData;
+		bool m_deleteSelected;
+		bool m_selectable;
 	};
 }
 

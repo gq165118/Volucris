@@ -9,75 +9,85 @@
 
 namespace volucris
 {
-	struct MaterialFloatParameter
+	namespace MaterialParameterHelper
 	{
-	public:
-		MaterialFloatParameter()
-			: m_name()
-			, m_value(0.0)
-		{
-		}
-
-		MaterialFloatParameter(const std::string& name, float value = 0.0)
-			: m_name(name), m_value(value)
-		{
-		}
-
-		void setValue(float value) {
-			m_value = value;
-		}
-
-		float getValue() const {
-			return m_value;
-		}
-
-		const std::string& getName() const { return m_name; }
-
-		template <class Archive>
-		void serialize(Archive& ar, const unsigned int version)
-		{
-			ar& m_name;
-			ar& m_value;
-		}
-
-		MaterialParameterInfo getParameterInfo() const
+		static MaterialParameterInfo getParameterInfo(const std::string& name, const float& value)
 		{
 			MaterialParameterInfo info;
-			info.name = m_name;
+			info.name = name;
 			info.type = MaterialParamterType::Float;
-			info.value = m_value;
+			info.value = value;
 			return info;
 		}
 
-	private:
-		std::string m_name;
-		float m_value;
-	};
+		static MaterialParameterInfo getParameterInfo(const std::string& name, const glm::vec4& value)
+		{
+			MaterialParameterInfo info;
+			info.name = name;
+			info.type = MaterialParamterType::Vector4;
+			info.value = value;
+			return info;
+		}
 
-	struct MaterialVector4Parameter
+		static MaterialParameterUpdateInfo getParameterUpdateInfo(size_t id, const float& value)
+		{
+			MaterialParameterUpdateInfo info;
+			info.id = id;
+			info.type = MaterialParamterType::Float;
+			info.value = value;
+			return info;
+		}
+
+		static MaterialParameterUpdateInfo getParameterUpdateInfo(size_t id, const glm::vec4& value)
+		{
+			MaterialParameterUpdateInfo info;
+			info.id = id;
+			info.type = MaterialParamterType::Vector4;
+			info.value = value;
+			return info;
+		}
+	}
+
+	template <typename T>
+	class MaterialParameterTemplate
 	{
+		std::string m_name;
+		T m_value;
+		bool m_dirty;
+		size_t m_id;
+
 	public:
-
-		MaterialVector4Parameter()
+		MaterialParameterTemplate()
 			: m_name()
-			, m_value(0.0)
+			, m_value()
+			, m_dirty(false)
+			, m_id(0)
 		{
+
 		}
 
-		MaterialVector4Parameter(const std::string& name, glm::vec4 value = {0.0,0.0,0.0,1.0})
-			: m_name(name), m_value(value)
+		MaterialParameterTemplate(const std::string& name, const T& value=T())
+			: m_name(name)
+			, m_value(value)
+			, m_dirty(false)
+			, m_id(0)
 		{
+
 		}
 
-		void setValue(const glm::vec4& value) {
+		void setId(size_t id) { m_id = id; }
+
+		void setValue(const T& value)
+		{
 			m_value = value;
+			m_dirty = true;
 		}
 
-		const std::string& getName() const { return m_name; }
+		void markDirty(bool dirty) { m_dirty = dirty; }
 
-		const glm::vec4& getValue() const {
-			return m_value;
-		}
+		bool isDirty() const { return m_dirty; }
+
+		const std::string getName() const { return m_name; }
 
 		template <class Archive>
 		void serialize(Archive& ar, const unsigned int version)
@@ -88,17 +98,18 @@ namespace volucris
 
 		MaterialParameterInfo getParameterInfo() const
 		{
-			MaterialParameterInfo info;
-			info.name = m_name;
-			info.type = MaterialParamterType::Vector4;
-			info.value = m_value;
-			return info;
+			return MaterialParameterHelper::getParameterInfo(m_name, m_value);
 		}
 
-	private:
-		std::string m_name;
-		glm::vec4 m_value;
+		MaterialParameterUpdateInfo getUpdateInfo() const
+		{
+			return MaterialParameterHelper::getParameterUpdateInfo(m_id, m_value);
+		}
+
 	};
+
+	using MaterialFloatParameter = MaterialParameterTemplate<float>;
+	using MaterialVector4Parameter = MaterialParameterTemplate<glm::vec4>;
 }
 
 #endif // !__volucris_material_parameter_h__

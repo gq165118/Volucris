@@ -7,8 +7,22 @@
 
 namespace volucris
 {
+    struct UniformProperty
+    {
+        std::string group = "Default";
+        std::string displayName = "";
+
+        template <class Archive>
+        void serialize(Archive& ar, const unsigned int version)
+        {
+            ar& group;
+            ar& displayName;
+        }
+    };
+
     struct UniformVariable 
     {
+        UniformProperty property;
         std::string type;
         std::string name;
         int arraySize = 0; // 0表示非数组
@@ -19,6 +33,7 @@ namespace volucris
             ar& type;
             ar& name;
             ar& arraySize;
+            ar& property;
         }
 
         bool operator==(const UniformVariable& mem) const
@@ -66,15 +81,31 @@ namespace volucris
         }
 
         const std::vector<UniformVariable>& getUniforms() const { return m_uniforms; }
+        
         const std::vector<UniformBlock>& getUniformBlocks() const { return m_uniformBlocks; }
+
+        bool findUniformProperty(std::string& name, UniformProperty& property) const
+        {
+            auto it = m_properties.find(name);
+            if (it != m_properties.end())
+            {
+                property = it->second;
+                return true;
+            }
+            return false;
+        }
 
     private:
         std::string preprocess(std::string source);
+
+        void parseComment(const std::string& comment);
+
         void parseUniforms(const std::string& source);
 
         bool parseUniformVariable(const std::string& source, UniformVariable& var);
 
     private:
+        std::unordered_map<std::string, UniformProperty> m_properties;
         std::vector<UniformVariable> m_uniforms;
         std::vector<UniformBlock> m_uniformBlocks;
 	};

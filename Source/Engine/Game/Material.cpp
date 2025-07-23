@@ -11,6 +11,7 @@ namespace volucris
 		, m_floatParameters()
 		, m_vec4Parameters()
 		, m_proxy()
+		, m_dirty(false)
 	{
 	}
 
@@ -21,7 +22,26 @@ namespace volucris
 		, m_floatParameters()
 		, m_vec4Parameters()
 		, m_proxy()
+		, m_dirty(false)
 	{
+	}
+
+	std::vector<MaterialParameterInfo> Material::getParameters()
+	{
+		std::vector<MaterialParameterInfo> parameters;
+		parameters.reserve(m_floatParameters.size() + m_vec4Parameters.size());
+		for (auto& parameter : m_floatParameters)
+		{
+			parameter.setId(parameters.size());
+			parameters.push_back(parameter.getParameterInfo());
+		}
+
+		for (auto& parameter : m_vec4Parameters)
+		{
+			parameter.setId(parameters.size());
+			parameters.push_back(parameter.getParameterInfo());
+		}
+		return parameters;
 	}
 
 	MaterialFloatParameter& Material::addParameter(const std::string& name, float value)
@@ -36,6 +56,29 @@ namespace volucris
 		return *m_vec4Parameters.rbegin();
 	}
 
+	std::vector<MaterialParameterUpdateInfo> Material::getUpdateParameterInfos()
+	{
+		std::vector<MaterialParameterUpdateInfo> parameters;
+		for (auto& parameter : m_floatParameters)
+		{
+			if (parameter.isDirty())
+			{
+				parameters.push_back(parameter.getUpdateInfo());
+				parameter.markDirty(false);
+			}
+		}
+
+		for (auto& parameter : m_vec4Parameters)
+		{
+			if (parameter.isDirty())
+			{
+				parameters.push_back(parameter.getUpdateInfo());
+				parameter.markDirty(false);
+			}
+		}
+		return parameters;
+	}
+
 	bool Material::setFloatParameter(const std::string& name, float value)
 	{
 		for (auto& param : m_floatParameters)
@@ -43,6 +86,7 @@ namespace volucris
 			if (param.getName() == name)
 			{
 				param.setValue(value);
+				m_dirty = true;
 				return true;
 			}
 		}
@@ -56,6 +100,7 @@ namespace volucris
 			if (param.getName() == name)
 			{
 				param.setValue(value);
+				m_dirty = true;
 				return true;
 			}
 		}
@@ -73,23 +118,29 @@ namespace volucris
 		if (!proxy)
 		{
 			proxy = std::make_shared<MaterialProxy>();
-			std::vector<MaterialParameterInfo> parameters;
-			for (const auto& parameter : m_floatParameters)
-			{
-				parameters.push_back(parameter.getParameterInfo());
-			}
-
-			for (const auto& parameter : m_vec4Parameters)
-			{
-				parameters.push_back(parameter.getParameterInfo());
-			}
-			Renderer::getInstance().push([proxy, parameters, vss=m_vss, fss=m_fss]() {
+			
+			Renderer::getInstance().push([proxy, parameters = getParameters(), vss=m_vss, fss=m_fss]() {
 				proxy->setSource(vss, fss);
 				proxy->setParameters(parameters);
 				});
 			m_proxy = proxy;
+			m_dirty = false;
 		}
 		return proxy;
+	}
+
+	void Material::update()
+	{
+		if (!m_dirty)
+		{
+			return;
+		}
+
+		auto proxy = getProxy();
+		Renderer::getInstance().push([proxy, parameters = getUpdateParameterInfos()]() {
+			proxy->update(parameters);
+			});
+		m_dirty = false;
 	}
 }
 

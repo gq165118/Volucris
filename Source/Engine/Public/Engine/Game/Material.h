@@ -2,7 +2,8 @@
 #define __volucris_material_h__
 
 #include <Engine/Game/GameObject.h>
-#include "MaterialParameter.h"
+#include <Engine/Game/MaterialParameter.h>
+#include <Engine/Render/MaterialParameterInfo.h>
 
 namespace volucris
 {
@@ -33,10 +34,22 @@ namespace volucris
 
 		std::shared_ptr<MaterialProxy> getProxy();
 
+		const std::vector<MaterialFloatParameter>& getFloatParamters() const { return m_floatParameters; }
+
+		const std::vector<MaterialVector4Parameter>& getVec4Paramters() const { return m_vec4Parameters; }
+
+		std::vector<MaterialParameterInfo> getParameters();
+
+		bool isDirty() const { return m_dirty; }
+
+		void update();
+
 	protected:
 		MaterialFloatParameter& addParameter(const std::string& name, float value);
 
 		MaterialVector4Parameter& addParameter(const std::string& name, glm::vec4 value);
+
+		std::vector<MaterialParameterUpdateInfo> getUpdateParameterInfos();
 
 		void clearParameters()
 		{
@@ -50,6 +63,7 @@ namespace volucris
 		std::vector<MaterialFloatParameter> m_floatParameters;
 		std::vector<MaterialVector4Parameter> m_vec4Parameters;
 		std::weak_ptr<MaterialProxy> m_proxy;
+		bool m_dirty;
 	};
 }
 
