@@ -9,10 +9,9 @@
 #include <RHI/RHIVertexArray.h>
 #include <RHI/RHIProgram.h>
 #include <RHI/RHIShader.h>
-#include <glm/glm.hpp>
-#include <glad/glad.h>
 #include <Render/StaticMeshProxy.h>
-#include <Render/MaterialProxy.h>
+#include <Render/MaterialInstanceProxy.h>
+#include <Render/Scene.h>
 
 constexpr int FrameCount = 2;
 
@@ -24,8 +23,6 @@ namespace volucris
 		, m_targetData()
 		, m_current(0)
 		, m_scene(nullptr)
-		, m_mesh(nullptr)
-		, m_material(nullptr)
 	{
 	}
 
@@ -111,12 +108,12 @@ namespace volucris
 		state.color = { 0.0, 0.8, 1.0, 1.0 };
 		cmdList->clear(state);
 
-		if (m_mesh && m_material)
+		for (const auto& primitive : m_scene->getPrimitives())
 		{
-			m_material->use(RHICmdList);
-			for (const auto& info : m_mesh->getDrawInfos())
+			for (const auto& info : primitive->getPrimitiveDrawInfos())
 			{
-				RHICmdList->drawPrimitive(m_material->getProgram(), info);
+				info.material->use(RHICmdList);
+				cmdList->drawPrimitive(info.vao, info.ebo, info.mesh);
 			}
 		}
 

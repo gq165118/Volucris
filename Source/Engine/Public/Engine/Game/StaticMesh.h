@@ -20,6 +20,16 @@ namespace volucris
 
 		void setMeshData(MeshData data);
 
+		void setMaterial(uint32 index, const SoftObject<Material>& material)
+		{
+			if (index < m_materials.size())
+			{
+				m_materials[index] = material;
+			}
+		}
+
+		const std::vector<SoftObject<Material>>& getMaterials() const { return m_materials; }
+
 		template <class Archive>
 		void serialize(Archive& ar, const unsigned int version)
 		{

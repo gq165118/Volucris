@@ -67,7 +67,6 @@ namespace volucris
 		, m_uploaders()
 		, m_world(nullptr)
 		, m_ready(false)
-		, m_material(nullptr)
 	{
 	}
 
@@ -245,34 +244,16 @@ namespace volucris
 		m_viewTexture = currentUploader->getTexture();
 	}
 
-	void ViewportWidget::setTestMaterial(const std::shared_ptr<Material>& material)
-	{
-		m_material = material;
-		if (m_view)
-		{
-			Renderer::getInstance().push([proxy = material->getProxy(), view = m_view]() {
-				view->setTestMaterial(proxy);
-				});
-		}
-	}
 
 	void ViewportWidget::createView()
 	{
 		auto context = getContext();
 		if (!m_view && m_world && context)
 		{
-			auto view = std::make_unique<View>(m_world->getScene());
+			auto scene = m_world->createScene();
+			auto view = std::make_unique<View>(scene);
 			m_view = view.get();
-			if (auto mesh = AssetManager::getInstance().loadAsset<StaticMesh>("/Engine/Content/Editor/Cube", GEditorWorld))
-			{
-				m_view->setTestStaticMesh(mesh->getProxy());
-			}
-
-			if (m_material)
-			{
-				m_view->setTestMaterial(m_material->getProxy());
-			}
-
+			
 			CreateViewTask task = CreateViewTask(std::move(view), m_size);
 			if (gApp->isRunning())
 			{

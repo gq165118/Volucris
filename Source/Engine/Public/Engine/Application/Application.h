@@ -12,6 +12,7 @@ namespace volucris
 {
 	class Window;
 	class GameWorld;
+	class MaterialInstance;
 
 	DECLARE_EVENT_MUTI_DELEGATE(OnLogAdded, void, const std::string&)
 
@@ -57,6 +58,14 @@ namespace volucris
 
 		void quit();
 
+		void addMaterialInstanceReference(const std::shared_ptr<MaterialInstance>& inst)
+		{
+			m_materialReferences.push_back(inst);
+		}
+
+	protected:
+		void updateMaterialInstances();
+
 	private:
 		static Application* s_instance;
 		Window* m_focusedWindow;
@@ -65,6 +74,7 @@ namespace volucris
 		CircleQueue<std::function<void()>> m_queue;
 		std::vector<std::shared_ptr<GameWorld>> m_games;
 		bool m_running;
+		std::vector<std::weak_ptr<MaterialInstance>> m_materialReferences;
 	};
 }
 

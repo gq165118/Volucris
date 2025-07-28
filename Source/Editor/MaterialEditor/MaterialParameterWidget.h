@@ -9,13 +9,14 @@
 namespace volucris
 {
 	class MaterialTemplate;
+	class MaterialInstance;
 
 	class MaterialParameterWidget : public Widget
 	{
 	public:
 		MaterialParameterWidget();
 
-		void setMaterial(const std::shared_ptr<MaterialTemplate>& material);
+		void setMaterial(const std::shared_ptr<MaterialInstance>& material);
 
 		void onBuild(bool) override;
 
@@ -27,7 +28,7 @@ namespace volucris
 			UniformProperty property;
 		};
 
-		std::shared_ptr<MaterialTemplate> m_material;
+		std::shared_ptr<MaterialInstance> m_material;
 		std::unordered_map<std::string, std::vector<Parameter>> m_parameters;
 	};
 }

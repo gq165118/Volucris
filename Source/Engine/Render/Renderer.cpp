@@ -11,6 +11,7 @@
 #include <Render/View.h>
 #include <Core/VectorHelp.h>
 #include <Render/Scene.h>
+#include <Render/MaterialInstanceProxy.h>
 
 namespace volucris
 {
@@ -77,6 +78,16 @@ namespace volucris
 	void Renderer::addView(std::unique_ptr<View> view)
 	{
 		m_views.emplace_back(std::move(view));
+	}
+
+	void Renderer::updateMaterialParameters(std::vector<MaterialUpdateData> datas)
+	{
+		push([datas = std::move(datas)]() {
+			for (const auto& [mat, infos] : datas)
+			{
+				mat->update(infos);
+			}
+			});
 	}
 
 	void Renderer::removeView(View* view)

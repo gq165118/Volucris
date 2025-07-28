@@ -2,12 +2,12 @@
 #define __volucris_material_h__
 
 #include <Engine/Game/GameObject.h>
-#include <Engine/Game/MaterialParameter.h>
 #include <Engine/Render/MaterialParameterInfo.h>
 
 namespace volucris
 {
 	class MaterialProxy;
+	class MaterialInstanceProxy;
 
 	class Material : public GameObject
 	{
@@ -16,56 +16,48 @@ namespace volucris
 
 		Material(std::string vss, std::string fss);
 
+		void setSource(std::string vss, std::string fss)
+		{
+			m_vss = std::move(vss);
+			m_fss = std::move(fss);
+		}
+
+		void setParameters(std::vector<MaterialParameterInfo> parameters)
+		{
+			m_parameters = std::move(parameters);
+		}
+
 		template <class Archive>
 		void serialize(Archive& ar, const unsigned int version)
 		{
 			ar& boost::serialization::base_object<GameObject>(*this);
 			ar& m_vss;
 			ar& m_fss;
-			ar& m_floatParameters;
-			ar& m_vec4Parameters;
+			ar& m_parameters;
 		}
 
-		bool setFloatParameter(const std::string& name, float value);
+		std::string getClassName() const { return "Material"; }
 
-		bool setVector4Parameter(const std::string& name, const glm::vec4& value);
+		const std::vector<MaterialParameterInfo>& getParameterInfos() const { return m_parameters; }
 
-		std::string getClassName() const override { return "Material"; }
+		std::shared_ptr<MaterialProxy> getBaseProxy();
 
-		std::shared_ptr<MaterialProxy> getProxy();
+		std::shared_ptr<MaterialInstanceProxy> getMaterialProxy();
 
-		const std::vector<MaterialFloatParameter>& getFloatParamters() const { return m_floatParameters; }
-
-		const std::vector<MaterialVector4Parameter>& getVec4Paramters() const { return m_vec4Parameters; }
-
-		std::vector<MaterialParameterInfo> getParameters();
-
-		bool isDirty() const { return m_dirty; }
-
-		void update();
+		std::shared_ptr<MaterialInstanceProxy> tryGetMaterialProxy() const;
 
 	protected:
-		MaterialFloatParameter& addParameter(const std::string& name, float value);
 
-		MaterialVector4Parameter& addParameter(const std::string& name, glm::vec4 value);
-
-		std::vector<MaterialParameterUpdateInfo> getUpdateParameterInfos();
-
-		void clearParameters()
-		{
-			m_floatParameters.clear();
-			m_vec4Parameters.clear();
-		}
+		virtual std::shared_ptr<MaterialInstanceProxy> createMaterialProxy();
 
 	private:
 		std::string m_vss;
 		std::string m_fss;
-		std::vector<MaterialFloatParameter> m_floatParameters;
-		std::vector<MaterialVector4Parameter> m_vec4Parameters;
+		std::vector<MaterialParameterInfo> m_parameters;
 		std::weak_ptr<MaterialProxy> m_proxy;
-		bool m_dirty;
+		std::weak_ptr<MaterialInstanceProxy> m_matProxy;
 	};
-}
+}  
 
 BOOST_CLASS_EXPORT_KEY(volucris::Material)
 

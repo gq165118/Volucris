@@ -2,6 +2,7 @@
 #define __volucris_renderer_h__
 
 #include <Engine/Core/Runable.h>
+#include <Engine/Game/MaterialInstance.h>
 
 namespace volucris
 {
@@ -25,6 +26,8 @@ namespace volucris
 		RHICommandList* getRenderCommand() { return m_cmdList.get(); }
 
 		void addView(std::unique_ptr<View> view);
+
+		void updateMaterialParameters(std::vector<MaterialUpdateData> datas);
 
 		void removeView(View* view);
 

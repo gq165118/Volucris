@@ -39,7 +39,7 @@ namespace volucris
 			m_value = value;
 		}
 
-		void upload() const  override;
+		void upload() const override;
 
 	private:
 		float m_value;

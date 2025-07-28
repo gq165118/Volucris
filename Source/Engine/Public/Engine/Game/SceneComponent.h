@@ -15,9 +15,9 @@ namespace volucris
 
 		~SceneComponent() override;
 
-		void attach(const std::shared_ptr<SceneComponent>& comp);
+		void attach(std::shared_ptr<SceneComponent> comp);
 
-		void attachTo(SceneComponent* parent);
+		void disattach(std::shared_ptr<SceneComponent> comp);
 
 		void setPosition(float x, float y, float z)
 		{
@@ -66,13 +66,18 @@ namespace volucris
 
 		void update() override;
 
+		SceneComponent* getParentSceneComponent() const { return m_parentComp; }
+
+		const std::vector<std::shared_ptr<SceneComponent>>& getAttachedComponents() const { return m_components; }
+
 	protected:
 		void updateTransform();
 
-		virtual void onTransformChanged();
+		virtual void onTransformChanged() {}
 
 	private:
 		// TODO: 预防循环嵌套
+		friend class Entity;
 		SceneComponent* m_parentComp = nullptr;
 		std::vector<std::shared_ptr<SceneComponent>> m_components;
 

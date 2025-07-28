@@ -11,7 +11,7 @@ namespace volucris
 	class RHIRenderTarget;
 	class RHIReadPixelBuffer;
 	class StaticMeshProxy;
-	class MaterialProxy;
+	class MaterialInstanceProxy;
 
 	class View
 	{
@@ -33,26 +33,12 @@ namespace volucris
 			return m_targetData;
 		}
 
-		void setTestStaticMesh(const std::shared_ptr<StaticMeshProxy>& staticmesh)
-		{
-			m_mesh = staticmesh;
-		}
-
-		void setTestMaterial(const std::shared_ptr<MaterialProxy>& mat)
-		{
-			m_material = mat;
-		}
-
 	private:
 		std::vector<std::unique_ptr<RHIRenderTarget>> m_targets;
 		std::vector<std::unique_ptr<RHIReadPixelBuffer>> m_targetReaders;
 		Texture::TextureData m_targetData;
 		int m_current;
 		std::shared_ptr<Scene> m_scene;
-
-		// 测试数据
-		std::shared_ptr<StaticMeshProxy> m_mesh;
-		std::shared_ptr<MaterialProxy> m_material;
 	};
 }
 

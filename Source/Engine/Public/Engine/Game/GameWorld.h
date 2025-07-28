@@ -3,6 +3,7 @@
 
 #include <Engine/Game/World.h>
 #include <Engine/Game/Region.h>
+#include <Engine/Game/SoftObject.h>
 
 namespace volucris
 {
@@ -17,7 +18,13 @@ namespace volucris
 
 		std::shared_ptr<Scene> getScene();
 
+		std::shared_ptr<Scene> createScene();
+
 		void update();
+
+		Region* addRegion(std::unique_ptr<Region> region);
+
+		std::vector<Region*> getRegions() const;
 
 	private:
 		std::unique_ptr<Region> m_persistentRegion;

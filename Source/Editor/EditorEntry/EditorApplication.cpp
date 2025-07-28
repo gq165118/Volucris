@@ -7,6 +7,7 @@
 #include <EditorEntry/EditorWindow.h>
 #include <Engine/Asset/AssetManager.h>
 #include <MaterialEditor/MaterialTemplate.h>
+#include <Engine/Game/MaterialInstance.h>
 
 namespace volucris
 {
@@ -43,7 +44,9 @@ namespace volucris
 			window->addChild(widget);
 			m_materialEditorWindow = window;
 
-			widget->setMaterial(AssetManager::getInstance().loadAsset<MaterialTemplate>(assetData.path));
+			auto inst = std::make_shared<MaterialInstance>();
+			inst->setMaterial(SoftObject<Material>(assetData.path));
+			widget->setMaterial(inst);
 
 			pushCommand([this, window]() {addWindow(window); });
 

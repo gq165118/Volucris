@@ -9,7 +9,8 @@
 #include <Engine/Application/Application.h>
 #include <Engine/Application/Event.h>
 #include <MaterialEditor/MaterialParameterWidget.h>
-#include <MaterialEditor/MaterialTemplate.h>
+#include <Engine/Game/MaterialInstance.h>
+#include <Engine/Game/StaticMeshComponent.h>
 
 namespace volucris
 {
@@ -21,13 +22,25 @@ namespace volucris
     {
         addChild(m_viewport);
         addChild(m_parameterWidget);
+        auto entity = std::make_shared<Entity>();
+        auto comp = std::make_shared<StaticMeshComponent>();
+        m_meshComponent = comp;
+        comp->setStaticMesh(SoftObject<StaticMesh>("/Engine/Content/Editor/Cube"));
+        entity->attach(comp);
+        m_world->getPersistentRegion()->addEntity(entity);
         m_viewport->setWorld(m_world);
+        gApp->addGame(m_world);
     }
 
-    void MaterialEditorWidget::setMaterial(const std::shared_ptr<MaterialTemplate>& material)
+    MaterialEditorWidget::~MaterialEditorWidget()
+    {
+        gApp->removeGame(m_world);
+    }
+
+    void MaterialEditorWidget::setMaterial(const std::shared_ptr<MaterialInstance>& material)
     {
         m_material = material;
-        m_viewport->setTestMaterial(material);
+        m_meshComponent->setMaterial(0, material);
         m_parameterWidget->setMaterial(material);
     }
 

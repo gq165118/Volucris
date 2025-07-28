@@ -7,16 +7,19 @@
 
 namespace volucris
 {
+
     struct UniformProperty
     {
         std::string group = "Default";
         std::string displayName = "";
+        std::string value = "";
 
         template <class Archive>
         void serialize(Archive& ar, const unsigned int version)
         {
             ar& group;
             ar& displayName;
+            ar& value;
         }
     };
 

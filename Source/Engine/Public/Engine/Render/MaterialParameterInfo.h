@@ -3,8 +3,9 @@
 
 #include <variant>
 #include <string>
-#include <glm/glm.hpp>
 #include <Engine/Core/TypesHelp.h>
+#include <Engine/Core/GlmHelp.h>
+#include <boost/serialization/variant.hpp>
 
 namespace volucris
 {
@@ -27,6 +28,14 @@ namespace volucris
 		std::string name;
 		MaterialParamterType type = MaterialParamterType::Float;
 		std::variant<float, glm::vec4, glm::mat4> value;
+
+		template <class Archive>
+		void serialize(Archive& ar, const unsigned int version)
+		{
+			ar& name;
+			ar& type;
+			ar& value;
+		}
 	};
 }
 

@@ -43,6 +43,19 @@ namespace volucris
 		}
 
 		template<typename T>
+		inline bool quickRemoveIf(std::vector<T>& vec, const std::function<bool(const T&)>& pred)
+		{
+			auto it = std::find_if(vec.begin(), vec.end(), pred);
+			if (it != vec.end())
+			{
+				std::swap(*it, *(vec.rbegin()));
+				vec.pop_back();
+				return true;
+			}
+			return false;
+		}
+
+		template<typename T>
 		inline bool quickRemoveAll(std::vector<T>& vec, const T& value)
 		{
 			bool find = false;
@@ -65,25 +78,9 @@ namespace volucris
 		}
 
 		template<typename T>
-		inline bool quickRemoveAllIf(std::vector<T>& vec, const std::function<bool(const T&)>& pred)
+		inline void quickRemoveAllIf(std::vector<T>& vec, const std::function<bool(const T&)>& pred)
 		{
-			bool find = false;
-			size_t idx = 0;
-			while (idx < vec.size())
-			{
-				auto it = vec.begin() + idx;
-				if (pred(*it))
-				{
-					std::swap(*it, *(vec.rbegin()));
-					vec.pop_back();
-					find = true;
-				}
-				else
-				{
-					++idx;
-				}
-			}
-			return find;
+			vec.erase(std::remove_if(vec.begin(), vec.end(), pred), vec.end());
 		}
 	}
 

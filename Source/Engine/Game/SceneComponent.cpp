@@ -12,49 +12,44 @@ namespace volucris
 		, m_position(glm::vec3(0.0))
 		, m_rotation(glm::vec3(0.0))
 		, m_scale(glm::vec3(1.0))
+		, m_rotationTransform()
+		, m_relativeTransform()
+		, m_worldTransform()
 	{
 
 	}
 
 	SceneComponent::~SceneComponent()
 	{
-		for (const auto& comp : m_components)
-		{
-			comp->m_parentComp = nullptr;
-		}
-
-		if (m_parentComp)
-		{
-			setParent(nullptr);
-		}
+		
 	}
 
-	void SceneComponent::attach(const std::shared_ptr<SceneComponent>& comp)
+	void SceneComponent::attach(std::shared_ptr<SceneComponent> comp)
 	{
-		comp->attachTo(this);
-	}
-
-	void SceneComponent::attachTo(SceneComponent* parent)
-	{
-		if (parent == m_parentComp)
+		if (comp->m_parentComp == this)
 		{
 			return;
 		}
-
-		auto shared = getShared<SceneComponent>();
-
-		if (m_parentComp)
+		comp->m_parentComp = this;
+		if (auto entity = getEntity())
 		{
-			VectorHelp::quickRemove(m_parentComp->m_components, shared);
+			entity->attach(this, comp);
 		}
+		m_components.push_back(comp);
+	}
 
-		m_parentComp = parent;
-
-		if (m_parentComp)
+	void SceneComponent::disattach(std::shared_ptr<SceneComponent> comp)
+	{
+		if (comp->m_parentComp != this)
 		{
-			m_parentComp->m_components.push_back(shared);
+			return;
 		}
-		setParent(m_parentComp);
+		if (auto entity = getEntity())
+		{
+			entity->disattach(comp);
+		}
+		comp->m_parentComp = nullptr;
+		VectorHelp::quickRemove(m_components, comp);
 	}
 
 	void SceneComponent::update()

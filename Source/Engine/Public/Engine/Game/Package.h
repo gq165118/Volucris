@@ -22,49 +22,27 @@ namespace volucris
 			m_assetData.className = name;
 		}
 
-		void setObject(GameObject* object)
+		void setObject(const std::shared_ptr<GameObject>& object)
 		{
-			if (object == this)
-			{
-				return;
-			}
-
-			object->setParent(this);
+			m_object = object;
 			m_assetData.className = object->getClassName();
 		}
+
+		std::shared_ptr<GameObject> getAssetObject() const { return m_object; }
 
 		const AssetData& getAssetData() const { return m_assetData; }
 
 		template <class Archive>
 		void serialize(Archive& ar, const unsigned int version)
 		{
-			std::vector<std::shared_ptr<GameObject>> objects;
-			if (Archive::is_loading::value)
-			{
-				ar& objects;
-				for (auto& object : objects)
-				{
-					object->setParent(this);
-				}
-			}
-			else
-			{
-				for (const auto& object : getChildren())
-				{
-					if (dynamic_cast<Package*>(object.get()))
-					{
-						continue;
-					}
-					objects.push_back(object);
-				}
-				ar& objects;
-			}
+			ar& m_object;
 		}
 
 	private:
 		friend class AssetManager;
 		friend class AssetReader;
 		AssetData m_assetData; // 包含的资源数据
+		std::shared_ptr<GameObject> m_object;
 	};
 }
 

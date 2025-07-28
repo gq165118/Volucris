@@ -3,8 +3,8 @@
 layout(location=0) in vec3 v_pos;
 layout(location=2) in vec4 v_color;
 
-// u_color.group=base u_color.display_name=Color
-// u_scale.group=Mesh u_scale.display_name=Scale
+// u_color.group=base u_color.display_name=Color u_color.value=vec4(1.0,0.0,0.0,1.0)
+// u_scale.group=Mesh u_scale.display_name=Scale u_scale.value=1.0
 uniform vec4 u_color;
 uniform float u_scale;
 

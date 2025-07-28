@@ -17,17 +17,16 @@ namespace volucris
 
 		bool init(const PrimitiveInfo& info);
 
-		DrawInfo* get(size_t index)
-		{
-			return &m_drawInfos[index];
-		}
+		RHIVertexArray* getVertexArray() const { return m_vao.get(); }
 
-		const std::vector<DrawInfo> getDrawInfos() const { return m_drawInfos; }
+		RHIElementBuffer* getElementBuffer() const { return m_ebo.get(); }
+
+		const std::vector<PrimitiveSegment>& getSegments() const { return m_segments; }
 
 	private:
 		std::shared_ptr<RHIVertexArray> m_vao;
 		std::shared_ptr<RHIElementBuffer> m_ebo;
-		std::vector<DrawInfo> m_drawInfos;
+		std::vector<PrimitiveSegment> m_segments;
 	};
 }
 

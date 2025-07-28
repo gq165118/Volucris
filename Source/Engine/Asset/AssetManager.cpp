@@ -22,16 +22,16 @@ namespace volucris
 			return false; // 如果包已经注册，则返回false
 		}
 
-		const auto& children = package->getChildren();
-		if (children.empty())
+		const auto object = package->getAssetObject();
+		if (!object)
 		{
+			V_LOG_WARN(Engine, "Package {} registry failed. no valid asset object", package->getAssetData().path);
 			return false;
 		}
-
-		const auto object = children[0];
 		auto className = object->getClassName();
 		if (className.empty())
 		{
+			V_LOG_WARN(Engine, "Package {} registry failed. no valid asset object: className", package->getAssetData().path);
 			return false;
 		}
 
@@ -67,7 +67,7 @@ namespace volucris
 
 	void AssetManager::save(Package* package)
 	{
-		if (package->getChildren().size() != 1)
+		if (!package->getAssetObject())
 		{
 			V_LOG_ERROR(Engine, "save package failed. not only 1 child");
 			return;
@@ -93,9 +93,12 @@ namespace volucris
 			auto package = reader.readPackage();
 			if (package)
 			{
-				object = package->getChildren()[0];
-				object->setParent(nullptr);
+				object = package->getAssetObject();
 				m_assets[packageName] = object;
+			}
+			else
+			{
+				V_LOG_WARN(Engine, "load asset failed. {}", packageName);
 			}
 		}
 

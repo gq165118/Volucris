@@ -13,16 +13,23 @@ namespace volucris
 	public:
 		Region();
 
-		void addEntity(std::unique_ptr<Entity> entity)
-		{
-			m_entites.push_back(std::move(entity));
-		}
+		void addEntity(const std::shared_ptr<Entity>& entity);
+
+		void removeEntity(const std::shared_ptr<Entity>& entity);
 
 		void update();
 
+		GameWorld* getWorld() const { return m_world; }
+
+		const std::vector<std::shared_ptr<Entity>>& getEntities() const { return m_entites; }
+
+	protected:
+		friend class GameWorld;
+		void setWorld(GameWorld* world);
+
 	private:
 		GameWorld* m_world;
-		std::vector<std::unique_ptr<Entity>> m_entites;
+		std::vector<std::shared_ptr<Entity>> m_entites;
 	};
 }
 

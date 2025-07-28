@@ -267,7 +267,7 @@ namespace volucris
 					const auto packageName = getDefaultPackageName(cpath, name);
 					auto package = std::make_shared<Package>(packageName);
 					auto texture = std::make_shared<Texture2D>(loader.getTextureData());
-					package->setObject(texture.get());
+					package->setObject(texture);
 					if (AssetManager::getInstance().registry(package.get()))
 					{
 						AssetManager::getInstance().save(package.get());
@@ -287,7 +287,7 @@ namespace volucris
 					{
 						const auto packageName = getDefaultPackageName(cpath, res.name);
 						auto package = std::make_shared<Package>(packageName);
-						package->setObject(res.mesh.get());
+						package->setObject(res.mesh);
 						if (AssetManager::getInstance().registry(package.get()))
 						{
 							AssetManager::getInstance().save(package.get());
@@ -343,7 +343,7 @@ namespace volucris
 				auto mat = loader.getMaterial();
 				const auto packageName = getDefaultPackageName(cpath, loader.getAssetName());
 				auto package = std::make_shared<Package>(packageName);
-				package->setObject(mat.get());
+				package->setObject(mat);
 				if (AssetManager::getInstance().registry(package.get()))
 				{
 					AssetManager::getInstance().save(package.get());

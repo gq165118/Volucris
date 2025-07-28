@@ -7,8 +7,6 @@
 
 namespace volucris
 {
-	class Package;
-
 	class World : public GameObject
 	{
 	public:
@@ -20,6 +18,7 @@ namespace volucris
 		{
 			m_objects.push_back(object);
 		}
+
 
 	private:
 		std::vector<std::shared_ptr<GameObject>> m_objects;

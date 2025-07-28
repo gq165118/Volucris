@@ -314,7 +314,7 @@ namespace volucris
 		}
 	}
 
-	void RHICommandList::drawPrimitive(RHIProgram* program, const DrawInfo& info)
+	void RHICommandList::drawPrimitive(RHIVertexArray* vao, RHIElementBuffer* ebo, const PrimitiveSegment& mesh)
 	{
 		setVertexArray(info.vao);
 		setBuffer(info.ebo);

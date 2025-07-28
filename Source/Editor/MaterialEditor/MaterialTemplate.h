@@ -29,6 +29,8 @@ namespace volucris
 
 		void updateUniforms();
 
+		static float getDefaultFloatValue(const std::string& str);
+
 	private:
 		std::vector<UniformVariable> m_uniforms;
 		std::vector<UniformBlock> m_uniformBlocks;

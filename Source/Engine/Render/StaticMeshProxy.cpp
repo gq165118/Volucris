@@ -24,7 +24,7 @@ namespace volucris
 		: Object()
 		, m_vao(nullptr)
 		, m_ebo(nullptr)
-		, m_drawInfos()
+		, m_segments()
 	{
 	}
 
@@ -74,14 +74,8 @@ namespace volucris
 		m_ebo->createGpuResource();
 		m_ebo->init(info.segmentData);
 
-		for (const auto& segment : info.segments)
-		{
-			DrawInfo drawInfo;
-			drawInfo.ebo = m_ebo.get();
-			drawInfo.vao = m_vao.get();
-			drawInfo.segment = segment;
-			m_drawInfos.push_back(drawInfo);
-		}
+		m_segments = info.segments;
+
 		return true;
 	}
 }

@@ -1,32 +1,24 @@
 #include "Game/Component.h"
 #include <Game/Entity.h>
+#include <Game/SceneComponent.h>
 
 namespace volucris
 {
 	Component::Component()
 		: GameObject()
 		, m_dirtyFlags(0)
+		, m_entity(nullptr)
+		, m_primitiveSceneProxy()
 	{
 	}
 
-	void Component::attachTo(Entity* entity)
+	GameWorld* Component::getWorld() const
 	{
-		if (entity == m_entity)
-		{
-			return;
-		}
-
-		auto shared = getShared<Component>();
 		if (m_entity)
 		{
-			m_entity->disattach(shared);
+			return m_entity->getWorld();
 		}
-
-		m_entity = entity;
-		if (m_entity)
-		{
-			m_entity->attach(shared);
-		}
+		return nullptr;
 	}
 
 	void Component::update()
@@ -40,6 +32,20 @@ namespace volucris
 			onTransformStateChanged();
 		}
 		m_dirtyFlags = 0;
+	}
+
+	std::shared_ptr<PrimitiveSceneProxy> Component::getPrimitiveSceneProxy() const
+	{
+		if (m_primitiveSceneProxy.expired())
+		{
+			return nullptr;
+		}
+		return m_primitiveSceneProxy.lock();
+	}
+
+	void Component::setEnity(Entity* entity)
+	{
+		m_entity = entity;
 	}
 } // namespace volucris
 

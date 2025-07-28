@@ -7,6 +7,8 @@
 namespace volucris
 {
 	class Entity;
+	class GameWorld;
+	class PrimitiveSceneProxy;
 
 	class Component : public GameObject
 	{
@@ -14,8 +16,6 @@ namespace volucris
 
 	public:
 		Component();
-
-		void attachTo(Entity* entity);
 
 		void markRenderStateDirty()
 		{
@@ -27,9 +27,21 @@ namespace volucris
 			m_dirtyFlags |= DirtyFlag::TransformState;
 		}
 
+		Entity* getEntity() const { return m_entity; }
+
+		GameWorld* getWorld() const;
+
 		virtual void update();
 
+		virtual std::shared_ptr<PrimitiveSceneProxy> createProxy() { return nullptr; }
+
+		void setPrimitiveSceneProxy(const std::shared_ptr<PrimitiveSceneProxy>& proxy) { m_primitiveSceneProxy = proxy; }
+
+		std::shared_ptr<PrimitiveSceneProxy> getPrimitiveSceneProxy() const;
+
 	protected:
+		void setEnity(Entity* entity);
+
 		virtual void onRenderStateChanged() {}
 
 		virtual void onTransformStateChanged() {}
@@ -44,6 +56,7 @@ namespace volucris
 		uint8 m_dirtyFlags;
 
 		Entity* m_entity;
+		std::weak_ptr<PrimitiveSceneProxy> m_primitiveSceneProxy;
 	};
 }
 

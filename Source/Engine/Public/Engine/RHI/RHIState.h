@@ -46,7 +46,7 @@ namespace volucris
 		RHIProgram* program = nullptr;
 	};
 
-	struct DrawInfo
+	struct MeshDrawInfo
 	{
 		RHIVertexArray* vao = nullptr;
 		RHIElementBuffer* ebo = nullptr;

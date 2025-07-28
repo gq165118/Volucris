@@ -44,9 +44,10 @@ namespace volucris
 
 	bool FileSystem::unmount(const std::string& virtualPath)
 	{
-		return VectorHelp::quickRemoveAllIf<MountPoint>(m_impl->mountPoints, [&virtualPath](const MountPoint& point)->bool {
+		VectorHelp::quickRemoveAllIf<MountPoint>(m_impl->mountPoints, [&virtualPath](const MountPoint& point)->bool {
 			return point.path == virtualPath;
 			});
+		return true;
 	}
 
 	bool FileSystem::isWritable(const std::string& virtualPath)

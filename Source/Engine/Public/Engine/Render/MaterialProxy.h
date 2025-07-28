@@ -21,14 +21,18 @@ namespace volucris
 
 		void setParameters(const std::vector<MaterialParameterInfo>& parameters);
 
-		void update(const std::vector<MaterialParameterUpdateInfo>& parameters);
+		const std::vector<MaterialParameterInfo>& getParameters() const { return m_parameters; }
 
 		RHIProgram* getProgram() const;
 
-		void use(RHICommandList* context);
+		RHIUniform* getUniform(size_t index)
+		{
+			return m_uniforms[index].get();
+		}
 
 	private:
 		std::unique_ptr<RHIProgram> m_program;
+		std::vector<MaterialParameterInfo> m_parameters;
 		std::vector<std::unique_ptr<RHIUniform>> m_uniforms;
 	};
 }

@@ -1,6 +1,7 @@
 #include "MaterialParameterWidget.h"
 #include <imgui/imgui.h>
 #include "MaterialTemplate.h"
+#include <Engine/Game/MaterialInstance.h>
   
 namespace volucris
 {
@@ -10,14 +11,14 @@ namespace volucris
 	{
 	}
 
-	void MaterialParameterWidget::setMaterial(const std::shared_ptr<MaterialTemplate>& material)
+	void MaterialParameterWidget::setMaterial(const std::shared_ptr<MaterialInstance>& material)
 	{
 		m_material = material;
 		m_parameters.clear();
 		for (const auto& parameter : material->getParameters())
 		{
 			UniformProperty property;
-			material->findProperty(parameter.name, property);
+			std::dynamic_pointer_cast<MaterialTemplate>(material->getMaterial().object())->findProperty(parameter.name, property);
 			auto it = m_parameters.find(property.group);
 			Parameter param;
 			param.info = parameter;
@@ -86,10 +87,5 @@ namespace volucris
 			}
 		}
 		ImGui::End();
-
-		if (m_material->isDirty())
-		{
-			m_material->update();
-		}
 	}
 }

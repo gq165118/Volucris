@@ -12,6 +12,7 @@
 #include <tracy/Tracy.hpp>
 #include <iostream>
 #include <Game/GameWorld.h>
+#include <Game/MaterialInstance.h>
 
 namespace volucris
 {
@@ -171,6 +172,8 @@ namespace volucris
 				game->update();
 			}
 
+			updateMaterialInstances();
+
 			Renderer::getInstance().push(nullptr);
 
 			FrameSynthesier::getInstance().countGameFrame();
@@ -189,5 +192,46 @@ namespace volucris
 	void Application::quit()
 	{
 		pushCommand([this]() {removeWindow(m_mainWindow); });
+	}
+
+	void Application::updateMaterialInstances()
+	{
+		
+
+		for (const auto& mat : m_materialReferences)
+		{
+			if (mat.expired())
+				continue;
+
+			std::vector<MaterialUpdateData> updateDatas;
+			updateDatas.reserve(std::max(m_materialReferences.size() / 3, (size_t)8));
+			if (auto material = mat.lock())
+			{
+				if (material->isDirty())
+				{
+					auto data = material->getUpdateData();
+					if (data.isValid())
+					{
+						updateDatas.push_back(std::move(data));
+					}
+					material->markDirty(false);
+				}
+			}
+			Renderer::getInstance().updateMaterialParameters(std::move(updateDatas));
+		}
+
+		VectorHelp::quickRemoveAllIf<std::weak_ptr<MaterialInstance>>(m_materialReferences,
+			[](const std::weak_ptr<MaterialInstance>& inst)->bool {
+				if (inst.expired())
+				{
+					return false;
+				}
+				if (auto mat = inst.lock())
+				{
+					return mat->tryGetMaterialProxy() == nullptr;
+				}
+				return true;
+			}
+		);
 	}
 }

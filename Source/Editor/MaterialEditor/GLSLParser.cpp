@@ -117,6 +117,10 @@ namespace volucris
             {
                 property.displayName = value;
             }
+            else if (propertyName == "value")
+            {
+                property.value = value;
+            }
         }
     }
 

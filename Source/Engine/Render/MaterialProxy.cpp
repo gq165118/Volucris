@@ -26,6 +26,7 @@ namespace volucris
 
 	void MaterialProxy::setParameters(const std::vector<MaterialParameterInfo>& parameters)
 	{
+		m_parameters = parameters;
 		for (const auto& parameter : parameters)
 		{
 			auto type = parameter.type;
@@ -62,39 +63,8 @@ namespace volucris
 		}
 	}
 
-	void MaterialProxy::update(const std::vector<MaterialParameterUpdateInfo>& parameters)
-	{
-		for (const auto& parameter : parameters)
-		{
-			auto& uniform = m_uniforms[parameter.id];
-			auto type = parameter.type;
-			switch (type)
-			{
-			case volucris::MaterialParamterType::Float:
-				dynamic_cast<RHIUniformFloat*>(uniform.get())->setValue(std::get<float>(parameter.value));
-				break;
-			case volucris::MaterialParamterType::Vector4:
-				dynamic_cast<RHIUniformVec4*>(uniform.get())->setValue(std::get<glm::vec4>(parameter.value));
-				break;
-			case volucris::MaterialParamterType::Mat4:
-				break;
-			default:
-				break;
-			}
-		}
-	}
-
 	RHIProgram* MaterialProxy::getProgram() const
 	{
 		return m_program.get();
-	}
-
-	void MaterialProxy::use(RHICommandList* context)
-	{
-		context->setProgram(m_program.get());
-		for (const auto& uniform : m_uniforms)
-		{
-			uniform->upload();
-		}
 	}
 }
