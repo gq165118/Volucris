@@ -277,7 +277,6 @@ namespace volucris
         //}
        
         Texture2D t;
-		ImGuiIO& io = ImGui::GetIO();
         m_iniFileName = gFileSystem.virtualToPhysical(fmt::format("/Engine/Config/{}", getTitle().c_str()));
         io.IniFilename = m_iniFileName.c_str();
         if (auto texture = AssetManager::getInstance().loadAsset<Texture2D>("/Engine/Content/Editor/Textures/T_Icons", GEditorWorld))

@@ -323,19 +323,11 @@ namespace volucris
 
 	void RHICommandList::drawPrimitive(RHIVertexArray* vao, RHIElementBuffer* ebo, const PrimitiveSegment& mesh)
 	{
-		setVertexArray(info.vao);
-		setBuffer(info.ebo);
-		glDrawElements(getGLElementDrawMode(info.segment.mode), info.segment.count, getGLElementType(info.segment.type), (void*)info.segment.offset);
+		setVertexArray(vao);
+		setBuffer(ebo);
+
+		glDrawElements(getGLElementDrawMode(mesh.mode), mesh.count, getGLElementType(mesh.type), (void*)mesh.offset);
 		GL_CHECK()
 	}
 
-	void RHICommandList::drawPrimitive(RHIProgram* program, const DrawInfo& info, Rect rect)
-	{
-		setProgram(program);
-		setVertexArray(info.vao);
-		setBuffer(info.ebo);
-		glViewport(rect.x, rect.y, rect.width, rect.height);
-		glDrawElements(getGLElementDrawMode(info.segment.mode), info.segment.count, getGLElementType(info.segment.type), (void*)info.segment.offset);
-		GL_CHECK()
-	}
 }

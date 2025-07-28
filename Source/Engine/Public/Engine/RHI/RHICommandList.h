@@ -71,8 +71,6 @@ namespace volucris
 
 		void drawPrimitive(RHIVertexArray* vao, RHIElementBuffer* ebo, const PrimitiveSegment& mesh);
 
-		void drawPrimitive(RHIProgram* program, const DrawInfo& info, Rect rect);
-
 		const RHIState& getState() const { return m_state; }
 
 	private:
