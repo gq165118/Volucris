@@ -56,6 +56,7 @@ namespace volucris
 
 		addBlock(PrimitiveType::Vertex, m_vertices);
 		addBlock(PrimitiveType::Normal, m_normals);
+		addBlock(PrimitiveType::TextureCoordinate, m_uv0);
 		addVec4Block(PrimitiveType::Color, m_color);
 		addVec4Block(PrimitiveType::SecondColor, m_secondColor);
 		return info;

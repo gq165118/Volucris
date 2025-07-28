@@ -30,7 +30,7 @@ namespace volucris
 		const auto& assetData = m_package->getAssetData();
 		// TODO: 检查是否和已经存在的文件guid相同
 		const auto& filepath = fmt::format("{}.asset", assetData.path);
-		if (!gFileSystem.createFile(filepath))
+		if (!gFileSystem.fileExists(filepath) && !gFileSystem.createFile(filepath))
 		{
 			V_LOG_WARN(Engine, "create file {} failed.", filepath);
 			return false;

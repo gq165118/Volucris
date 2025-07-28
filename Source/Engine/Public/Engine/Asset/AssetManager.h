@@ -28,6 +28,8 @@ namespace volucris
 			return inst;
 		}
 
+		void scan();
+
 		bool registry(Package* package);
 
 		void unregister(const std::string& packageName);
@@ -54,6 +56,18 @@ namespace volucris
 		}
 
 		AssetData loadAssetData(const std::string& packageName) const;
+
+		std::vector<AssetData> getAssets(const std::string& className) const;
+
+		template<typename T, typename = std::enable_if_t<std::is_base_of_v<GameObject, T>>>
+		std::vector<AssetData> getAssets() const
+		{
+			T object;
+			return getAssets(object.getClassName());
+		}
+
+	private:
+		void scanAssets(const std::string& rootPath);
 
 	private:
 		AssetManager();

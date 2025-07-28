@@ -8,6 +8,8 @@
 
 namespace volucris
 {
+	class Texture2DProxy;
+
 	class Texture2D : public GameObject
 	{
 	public:
@@ -27,9 +29,12 @@ namespace volucris
 		const Texture::TextureData& getTextureData() const { return m_data; }
 
 		std::string getClassName() const override { return "Texture2D"; }
+
+		std::shared_ptr<Texture2DProxy> getProxy();
 		
 	private:
 		Texture::TextureData m_data;
+		std::weak_ptr<Texture2DProxy> m_proxy;
 	};
 } // namespace volucris
 

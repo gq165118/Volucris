@@ -38,7 +38,7 @@ namespace volucris
 		{
 			proxy = std::make_shared<MaterialProxy>();
 
-			Renderer::getInstance().push([proxy, parameters = m_parameters, vss = m_vss, fss = m_fss]() {
+			Renderer::getInstance().push([proxy, parameters = getParameterInfos(), vss = m_vss, fss = m_fss]() {
 				proxy->setSource(vss, fss);
 				proxy->setParameters(parameters);
 				});
@@ -81,6 +81,16 @@ namespace volucris
 			proxy->setMaterial(baseProxy);
 			});
 		return proxy;
+	}
+
+	std::vector<MaterialParameterInfo> Material::getParameterInfos() const
+	{
+		std::vector<MaterialParameterInfo> infos;
+		for (const auto& param : m_parameters)
+		{
+			infos.push_back(param.getInfo());
+		}
+		return infos;
 	}
 }
 

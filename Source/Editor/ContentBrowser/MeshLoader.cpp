@@ -190,6 +190,8 @@ namespace volucris
 		}
 		data.setVertices(std::move(vertices));
 		data.setNormals(std::move(normals));
+		data.setUV0(std::move(uv0));
+		data.setUV1(std::move(uv1));
 		
 		resource.mesh->setMeshData(std::move(data));
 		return resource;

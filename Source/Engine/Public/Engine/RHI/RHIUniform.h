@@ -82,6 +82,31 @@ namespace volucris
 	private:
 		glm::mat4 m_value;
 	};
+
+	class RHIUniformInt : public RHIUniform
+	{
+	public:
+		RHIUniformInt(int value = 0)
+			: RHIUniform()
+			, m_value(value)
+		{
+		}
+
+		void setValue(int value)
+		{
+			m_value = value;
+		}
+
+		int getValue() const
+		{
+			return m_value;
+		}
+
+		void upload() const  override;
+
+	private:
+		int m_value;
+	};
 }
 
 #endif // !__volucris_rhi_uniform_h__

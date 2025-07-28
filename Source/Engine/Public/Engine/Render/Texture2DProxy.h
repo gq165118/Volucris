@@ -17,7 +17,12 @@ namespace volucris
 
 		~Texture2DProxy();
 
-		void setTextureData(const std::vector<uint8>& data);
+		void setTextureData(const Texture::TextureData& data);
+
+		std::shared_ptr<RHITexture2D> getTexture() const
+		{
+			return m_texture;
+		}
 
 	private:
 		std::shared_ptr<RHITexture2D> m_texture;

@@ -6,12 +6,18 @@
 #include <Game/World.h>
 #include <Game/Texture2D.h>
 #include <Game/StaticMesh.h>
+#include <FileSystem/FileSystem.h>
 
 namespace volucris
 {
 	AssetManager::AssetManager()
 	{
 		// 初始化代码
+	}
+
+	void AssetManager::scan()
+	{
+		scanAssets("/Engine/Content");
 	}
 
 	bool AssetManager::registry(Package* package)
@@ -114,5 +120,44 @@ namespace volucris
 	{
 		AssetReader reader = AssetReader(packageName);
 		return reader.readAssetData();
+	}
+
+	std::vector<AssetData> AssetManager::getAssets(const std::string& className) const
+	{
+		if (className.empty())
+		{
+			V_LOG_WARN(Engine, "getAssets called with empty className");
+			return {};
+		}
+
+		std::vector<AssetData> assets;
+		for (const auto& [path, assetData] : m_assetDatas)
+		{
+			if (assetData.className == className)
+			{
+				assets.push_back(assetData);
+			}
+		}
+		return assets;
+	}
+
+	void AssetManager::scanAssets(const std::string& rootPath)
+	{
+		const auto& filenodes = gFileSystem.getFileNodes(rootPath);
+		for (const auto& node : filenodes)
+		{
+			if (node.type == EFileType::Asset)
+			{
+				const auto assetData = loadAssetData(node.path);
+				if (!assetData.className.empty())
+				{
+					m_assetDatas[node.path] = assetData;
+				}
+			}
+			else if (node.type == EFileType::Directory)
+			{
+				scanAssets(node.path); // 递归扫描子目录
+			}
+		}
 	}
 }
