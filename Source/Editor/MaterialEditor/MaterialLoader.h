@@ -21,12 +21,12 @@ namespace volucris
 
 		const std::string& getAssetName() const { return m_name; }
 
+		static std::string getSource(const std::string& filepath);
+
 	private:
 		void init(const std::string& filepath);
 
 		std::string getKey(const std::string& filepath);
-
-		std::string getSource(const std::string& filepath);
 
 	private:
 		std::string m_name;

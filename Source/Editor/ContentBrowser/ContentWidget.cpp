@@ -415,6 +415,25 @@ namespace volucris
 				
 			}
 			});
+		item->ReloadMaterial.bind([this](SoftObject<MaterialTemplate> material) {
+			if (!material.tryLoad())
+			{
+				V_LOG_ERROR(Editor, "Failed to reload material: {}", material.object()->getDisplayName());
+				return;
+			}
+
+			const auto vsp = material->getVertexSourcePath();
+			const auto fsp = material->getFragmentSourcePath();
+
+			const auto vss = MaterialLoader::getSource(vsp);
+			const auto fss = MaterialLoader::getSource(fsp);
+
+			material->setMaterialSource(vss, fss);
+
+			auto package = std::make_shared<Package>(material.getPath());
+			package->setObject(material.object());
+			AssetManager::getInstance().save(package.get());
+			});
 		return item;
 	}
 

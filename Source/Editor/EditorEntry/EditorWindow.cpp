@@ -27,6 +27,8 @@
 #include <iostream>
 #include <Engine/Game/StaticMesh.h>
 #include <Engine/Game/StaticMeshComponent.h>
+#include <Engine/Game/MaterialInstance.h>
+#include <Common/AssetItemWidget.h>
 
 namespace fs = std::filesystem;
 
@@ -87,7 +89,11 @@ namespace volucris
         auto entity = std::make_shared<Entity>();
         auto comp = std::make_shared<StaticMeshComponent>();
         comp->setStaticMesh(SoftObject<StaticMesh>("/Engine/Content/Editor/Cube"));
-        comp->setMaterial(0, SoftObject<Material>("/Engine/Content/Editor/test"));
+		auto mat = SoftObject<Material>("/Engine/Content/Editor/test");
+		auto material = std::make_shared<MaterialInstance>(mat);
+        material->setTexture2DParameter("u_texture", SoftObject<Texture2D>("/Engine/Content/Editor/T_container"));
+        material->setTexture2DParameter("u_texture2", SoftObject<Texture2D>("/Engine/Content/Editor/T_awesomeface"));
+        comp->setMaterial(0, material);
         entity->attach(comp);
         world->getPersistentRegion()->addEntity(entity);
 
@@ -178,6 +184,10 @@ namespace volucris
         m_contentBrowserWidget->build(init);
 
         ImGui::Begin("Property");
+
+        static AssetItemWidget widget("test");
+        widget.build();
+
         ImGui::End();
 
         // 结束主窗口

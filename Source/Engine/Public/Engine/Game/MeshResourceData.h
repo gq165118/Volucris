@@ -35,6 +35,16 @@ namespace volucris
 			m_color = std::move(colors);
 		}
 
+		void setUV0(std::vector<glm::vec3> uv0)
+		{
+			m_uv0 = std::move(uv0);
+		}
+
+		void setUV1(std::vector<glm::vec3> uv1)
+		{
+			m_uv1 = std::move(uv1);
+		}
+
 		PrimitiveInfo build();
 
 		template <class Archive>

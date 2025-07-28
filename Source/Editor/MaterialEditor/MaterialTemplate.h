@@ -14,10 +14,24 @@ namespace volucris
 
 		MaterialTemplate(std::string vss, std::string fss);
 
+		void setMaterialSourcePath(const std::string& vsp, const std::string fsp)
+		{
+			m_vertexSourcePath = vsp;
+			m_fragmentSourcePath = fsp;
+		}
+
+		const std::string& getVertexSourcePath() const { return m_vertexSourcePath; }
+
+		const std::string& getFragmentSourcePath() const { return m_fragmentSourcePath; }
+
+		void setMaterialSource(const std::string& vss, const std::string& fss);
+
 		template <class Archive>
 		void serialize(Archive& ar, const unsigned int version)
 		{
 			ar& boost::serialization::base_object<Material>(*this);
+			ar& m_vertexSourcePath;
+			ar& m_fragmentSourcePath;
 			ar& m_uniforms;
 			ar& m_uniformBlocks;
 		}
@@ -32,6 +46,8 @@ namespace volucris
 		static float getDefaultFloatValue(const std::string& str);
 
 	private:
+		std::string m_vertexSourcePath;
+		std::string m_fragmentSourcePath;
 		std::vector<UniformVariable> m_uniforms;
 		std::vector<UniformBlock> m_uniformBlocks;
 	};

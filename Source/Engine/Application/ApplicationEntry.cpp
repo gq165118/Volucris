@@ -5,6 +5,7 @@
 #include <FileSystem/FileSystem.h>
 #include <tracy/Tracy.hpp>
 #include <Game/MeshElements.h>
+#include <Asset/AssetManager.h>
 
 using namespace volucris;
 
@@ -33,6 +34,8 @@ int main(int argc, char* argv[])
 
 	gFileSystem.mount(u8"/Engine/Content", fmt::format(u8"{}/Content", VOLUCRIS_ENGINE_ROOT));
 	gFileSystem.mount(u8"/Engine/Config", fmt::format(u8"{}/Binaries/Config", VOLUCRIS_ENGINE_ROOT));
+
+	AssetManager::getInstance().scan();
 
 	if (!initialize())
 	{

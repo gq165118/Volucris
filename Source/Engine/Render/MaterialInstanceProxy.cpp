@@ -14,6 +14,17 @@ namespace volucris
 	{
 		m_material = material;
 		m_parameters = m_material->getParameters();
+
+		auto texSlot = 0;
+		for (auto id = 0; id < m_parameters.size(); ++id)
+		{
+			if (m_parameters[id].type == MaterialParamterType::Texture2D)
+			{
+				auto texture = std::get<std::shared_ptr<Texture2DProxy>>(m_parameters[id].value);
+				auto uniform = static_cast<RHIUniformInt*>(m_material->getUniform(id));
+				uniform->setValue(texSlot++);
+			}
+		}
 	}
 
 	void MaterialInstanceProxy::update(const std::vector<MaterialParameterUpdateInfo>& parameters)
@@ -23,18 +34,8 @@ namespace volucris
 			auto idx = parameter.id;
 			v_check(m_parameters[idx].type == parameter.type);
 			m_parameters[idx].value = parameter.value;
-		}
-	}
-
-	void MaterialInstanceProxy::use(RHICommandList* context)
-	{
-		context->setProgram(m_material->getProgram());
-		for (auto id = 0; id < m_parameters.size(); ++id)
-		{
-			const auto& parameter = m_parameters[id];
-			auto type = parameter.type;
-			const auto& uniform = m_material->getUniform(id);
-			switch (type)
+			const auto& uniform = m_material->getUniform(idx);
+			switch (parameter.type)
 			{
 			case volucris::MaterialParamterType::Float:
 				static_cast<RHIUniformFloat*>(uniform)->setValue(std::get<float>(parameter.value));
@@ -48,7 +49,25 @@ namespace volucris
 			default:
 				break;
 			}
-			uniform->upload();
+		}
+	}
+
+	void MaterialInstanceProxy::use(RHICommandList* context)
+	{
+		context->setProgram(m_material->getProgram());
+		auto texId = 0;
+		for (auto id = 0; id < m_parameters.size(); ++id)
+		{
+			const auto& parameter = m_parameters[id];
+			if (parameter.type == MaterialParamterType::Texture2D)
+			{
+				if (auto texture = std::get<std::shared_ptr<Texture2DProxy>>(parameter.value))
+				{
+					context->bindTexture2D(texId, texture->getTexture().get());
+				}
+				++texId;
+			}
+			m_material->getUniform(id)->upload();
 		}
 	}
 }

@@ -2,7 +2,7 @@
 #define __volucris_resource_h__
 
 #include <Engine/Core/Object.h>
-#include <Core/TypesHelp.h>
+#include <Engine/Core/TypesHelp.h>
 
 namespace volucris
 {

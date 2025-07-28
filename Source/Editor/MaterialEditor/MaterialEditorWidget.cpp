@@ -40,6 +40,8 @@ namespace volucris
     void MaterialEditorWidget::setMaterial(const std::shared_ptr<MaterialInstance>& material)
     {
         m_material = material;
+        material->setTexture2DParameter("u_texture", SoftObject<Texture2D>("/Engine/Content/Editor/T_container"));
+        material->setTexture2DParameter("u_texture2", SoftObject<Texture2D>("/Engine/Content/Editor/T_awesomeface"));
         m_meshComponent->setMaterial(0, material);
         m_parameterWidget->setMaterial(material);
     }

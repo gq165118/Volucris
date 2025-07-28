@@ -27,6 +27,7 @@ namespace volucris
 	void MaterialProxy::setParameters(const std::vector<MaterialParameterInfo>& parameters)
 	{
 		m_parameters = parameters;
+		int texIdx = 0;
 		for (const auto& parameter : parameters)
 		{
 			auto type = parameter.type;
@@ -51,6 +52,13 @@ namespace volucris
 			{
 				auto uni = std::make_unique<RHIUniformMat4>();
 				uni->setValue(std::get<glm::mat4>(parameter.value));
+				uniform = std::move(uni);
+			}
+				break;
+			case volucris::MaterialParamterType::Texture2D:
+			{
+				auto uni = std::make_unique<RHIUniformInt>();
+				uni->setValue(texIdx++);
 				uniform = std::move(uni);
 			}
 				break;

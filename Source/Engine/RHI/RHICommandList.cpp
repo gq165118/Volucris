@@ -118,6 +118,13 @@ namespace volucris
 		//glDebug
 	}
 
+	void RHICommandList::bindTexture2D(uint32 index, RHITexture2D* texture)
+	{
+		glActiveTexture(GL_TEXTURE0 + index);
+		glBindTexture(GL_TEXTURE_2D, texture ? texture->getId() : 0);
+		m_state.texture2d = texture;
+	}
+
 	bool RHICommandList::setTexture2D(RHITexture2D* texture)
 	{
 		if (m_state.texture2d == texture)

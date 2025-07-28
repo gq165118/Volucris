@@ -39,6 +39,8 @@ namespace volucris
 
 		void executeCommand(const std::string& name);
 
+		void bindTexture2D(uint32 index, RHITexture2D* texture);
+
 		bool setTexture2D(RHITexture2D* texture);
 
 		void unsetTexture2D(RHITexture2D* texture);

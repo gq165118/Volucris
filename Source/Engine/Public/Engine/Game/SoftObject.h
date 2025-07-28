@@ -82,6 +82,8 @@ namespace volucris
 
 		bool isValid() const { return !m_path.empty(); }
 
+		const std::string& getPath() const { return m_path; }
+
 	private:
 		std::string m_path;
 		std::shared_ptr<T> m_object;

@@ -3,7 +3,7 @@
 
 #include <Engine/Application/Widget.h>
 #include <unordered_map>
-#include <Engine/Render/MaterialParameterInfo.h>
+#include <Engine/Game/MaterialParameter.h>
 #include "GLSLParser.h"
 
 namespace volucris
@@ -24,10 +24,11 @@ namespace volucris
 		struct Parameter
 		{
 			std::string name;
-			MaterialParameterInfo info;
+			MaterialParameter desc;
 			UniformProperty property;
 		};
 
+		std::vector<AssetData> m_textureAssets;
 		std::shared_ptr<MaterialInstance> m_material;
 		std::unordered_map<std::string, std::vector<Parameter>> m_parameters;
 	};

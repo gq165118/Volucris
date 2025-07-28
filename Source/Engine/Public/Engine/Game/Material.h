@@ -2,6 +2,7 @@
 #define __volucris_material_h__
 
 #include <Engine/Game/GameObject.h>
+#include <Engine/Game/MaterialParameter.h>
 #include <Engine/Render/MaterialParameterInfo.h>
 
 namespace volucris
@@ -22,7 +23,7 @@ namespace volucris
 			m_fss = std::move(fss);
 		}
 
-		void setParameters(std::vector<MaterialParameterInfo> parameters)
+		void setParameters(std::vector<MaterialParameter> parameters)
 		{
 			m_parameters = std::move(parameters);
 		}
@@ -38,7 +39,7 @@ namespace volucris
 
 		std::string getClassName() const { return "Material"; }
 
-		const std::vector<MaterialParameterInfo>& getParameterInfos() const { return m_parameters; }
+		const std::vector<MaterialParameter>& getParameters() const { return m_parameters; }
 
 		std::shared_ptr<MaterialProxy> getBaseProxy();
 
@@ -47,13 +48,15 @@ namespace volucris
 		std::shared_ptr<MaterialInstanceProxy> tryGetMaterialProxy() const;
 
 	protected:
-
 		virtual std::shared_ptr<MaterialInstanceProxy> createMaterialProxy();
+
+	private:
+		std::vector<MaterialParameterInfo> getParameterInfos() const;
 
 	private:
 		std::string m_vss;
 		std::string m_fss;
-		std::vector<MaterialParameterInfo> m_parameters;
+		std::vector<MaterialParameter> m_parameters;
 		std::weak_ptr<MaterialProxy> m_proxy;
 		std::weak_ptr<MaterialInstanceProxy> m_matProxy;
 	};

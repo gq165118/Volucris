@@ -14,11 +14,25 @@ namespace volucris
 	{
 	}
 
-	void Texture2DProxy::setTextureData(const std::vector<uint8>& data)
+	void Texture2DProxy::setTextureData(const Texture::TextureData& data)
 	{
-		m_texture = std::make_shared<RHITexture2D>();
+		Texture::EPixelFormat format;
+		switch (data.format)
+		{
+		case Texture::ESourceFormat::RGB:
+			format = Texture::EPixelFormat::R8G8B8;
+			break;
+		case Texture::ESourceFormat::RGBA:
+			format = Texture::EPixelFormat::R8G8B8A8;
+			break;
+		default:
+			break;
+		}
+		RHITextureDesc desc = RHITextureDesc::create2D(data.size.width, data.size.height, format);
+		desc.sourceFormat = data.format;
+		m_texture = std::make_shared<RHITexture2D>(desc);
 		m_texture->setContext(RHICmdList);
 		m_texture->createGpuResource();
-		m_texture->init(data);
+		m_texture->init(data.data);
 	}
 }

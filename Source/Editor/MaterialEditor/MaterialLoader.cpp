@@ -51,6 +51,7 @@ namespace volucris
 		if (!vss.empty() && !fss.empty())
 		{
 			m_material = std::make_shared<MaterialTemplate>(std::move(vss), std::move(fss));
+			m_material->setMaterialSourcePath(m_vsp, m_fsp);
 			return true;
 		}
 		return false;

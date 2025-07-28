@@ -6,6 +6,7 @@
 #include <Engine/Core/TypesHelp.h>
 #include <Engine/Core/GlmHelp.h>
 #include <boost/serialization/variant.hpp>
+#include <Engine/Render/Texture2DProxy.h>
 
 namespace volucris
 {
@@ -13,29 +14,22 @@ namespace volucris
 	{
 		Float,
 		Vector4,
-		Mat4
+		Mat4,
+		Texture2D,
 	};
 
 	struct MaterialParameterUpdateInfo
 	{
 		size_t id = 0;
 		MaterialParamterType type = MaterialParamterType::Float;
-		std::variant<float, glm::vec4, glm::mat4> value;
+		std::variant<float, glm::vec4, glm::mat4, std::shared_ptr<Texture2DProxy>> value;
 	};
 
 	struct MaterialParameterInfo
 	{
 		std::string name;
 		MaterialParamterType type = MaterialParamterType::Float;
-		std::variant<float, glm::vec4, glm::mat4> value;
-
-		template <class Archive>
-		void serialize(Archive& ar, const unsigned int version)
-		{
-			ar& name;
-			ar& type;
-			ar& value;
-		}
+		std::variant<float, glm::vec4, glm::mat4, std::shared_ptr<Texture2DProxy>> value;
 	};
 }
 

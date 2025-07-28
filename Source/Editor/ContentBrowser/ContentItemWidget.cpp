@@ -188,6 +188,16 @@ namespace volucris
 			{
 				m_deleteSelected = true;
 			}
+
+			if (m_assetData.className == "Material")
+			{
+				ImGui::SeparatorText("Material");
+				if (ImGui::MenuItem("Reload"))
+				{
+					ReloadMaterial.invoke(SoftObject<MaterialTemplate>(m_assetData.path));
+				}
+			}
+
 			ImGui::EndPopup();
 		}
 

@@ -7,6 +7,7 @@
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <charconv>
+#include <Engine/Game/MaterialParameter.h>
 
 namespace volucris
 {
@@ -57,7 +58,13 @@ namespace volucris
 		, m_uniforms()
 		, m_uniformBlocks()
 	{
-		parseTemplate(std::move(vss), std::move(fss));
+		setMaterialSource(vss, fss);
+	}
+
+	void MaterialTemplate::setMaterialSource(const std::string& vss, const std::string& fss)
+	{
+		setSource(vss, fss);
+		parseTemplate(vss, fss);
 		updateUniforms();
 	}
 
@@ -83,6 +90,7 @@ namespace volucris
 		GLSLParser fsParser;
 
 		vsParser.parse(vss);
+
 		fsParser.parse(fss);
 
 		std::unordered_map<std::string, UniformVariable> uniforms;
@@ -141,10 +149,10 @@ namespace volucris
 
 	void MaterialTemplate::updateUniforms()
 	{
-		std::vector<MaterialParameterInfo> parameters;
+		std::vector<MaterialParameter> parameters;
 		for (const auto& uniform : m_uniforms)
 		{
-			MaterialParameterInfo info;
+			MaterialParameter info;
 			if (uniform.type == "float")
 			{
 				info.name = uniform.name;
@@ -158,6 +166,17 @@ namespace volucris
 				info.type = MaterialParamterType::Vector4;
 				info.value = stringToVec4(uniform.property.value);
 				parameters.push_back(info);
+			}
+			else if (uniform.type == "sampler2D")
+			{
+				info.name = uniform.name;
+				info.type = MaterialParamterType::Texture2D;
+				info.value = SoftObject<Texture2D>();
+				parameters.push_back(info);
+			}
+			else
+			{
+				V_LOG_WARN(Editor, "MaterialTemplate: Unsupported uniform type: {}", uniform.type);
 			}
 		}
 		setParameters(std::move(parameters));

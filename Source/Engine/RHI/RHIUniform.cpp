@@ -26,4 +26,9 @@ namespace volucris
 	{
 		glUniformMatrix4fv(m_location, 1, false, glm::value_ptr(m_value));
 	}
+
+	void RHIUniformInt::upload() const
+	{
+		glUniform1i(m_location, m_value);
+	}
 }

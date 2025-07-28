@@ -9,6 +9,8 @@
 #include <Engine/Core/Timer.h>
 #include <Engine/Core/Delegate.h>
 #include <Engine/Asset/AssetData.h>
+#include <Engine/Game/SoftObject.h>
+#include <MaterialEditor/MaterialTemplate.h>
 
 namespace volucris
 {
@@ -17,6 +19,7 @@ namespace volucris
 
 	DECLARE_EVENT_DELEGATE(ItemEvent, void, ContentItemWidget*)
 	DECLARE_EVENT_DELEGATE(ItemNodeEvent, void, ContentItemWidget*, const FileNode&)
+	DECLARE_EVENT_DELEGATE(MaterialAssetEvent, void, SoftObject<MaterialTemplate>)
 
 	class ContentItemWidget
 	{
@@ -25,6 +28,8 @@ namespace volucris
 		ItemEvent DoubleClicked;
 		ItemEvent ContextMenuTriggered;
 		ItemNodeEvent NodeNameChanged;
+
+		MaterialAssetEvent ReloadMaterial;
 
 	public:
 		ContentItemWidget();

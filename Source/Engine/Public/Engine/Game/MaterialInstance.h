@@ -39,11 +39,14 @@ namespace volucris
 			ar& m_material;
 			ar& m_floatParameters;
 			ar& m_vec4Parameters;
+			ar& m_texture2dParameters;
 		}
 
 		bool setFloatParameter(const std::string& name, float value);
 
 		bool setVector4Parameter(const std::string& name, const glm::vec4& value);
+
+		bool setTexture2DParameter(const std::string& name, const SoftObject<Texture2D>& value);
 
 		std::string getClassName() const override { return "MaterialInstance"; }
 
@@ -53,7 +56,9 @@ namespace volucris
 
 		const std::vector<MaterialVector4Parameter>& getVec4Paramters() const { return m_vec4Parameters; }
 
-		std::vector<MaterialParameterInfo> getParameters();
+		const std::vector<MaterialTexture2DParameter>& getTexture2DParamters() const { return m_texture2dParameters; }
+
+		std::vector<MaterialParameter> getInstanceParameters() const;
 
 		void markDirty(bool dirty) { m_dirty = dirty; }
 
@@ -72,6 +77,7 @@ namespace volucris
 		SoftObject<Material> m_material;
 		std::vector<MaterialFloatParameter> m_floatParameters;
 		std::vector<MaterialVector4Parameter> m_vec4Parameters;
+		std::vector<MaterialTexture2DParameter> m_texture2dParameters;
 		std::weak_ptr<MaterialProxy> m_proxy;
 		bool m_dirty;
 	};

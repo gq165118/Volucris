@@ -25,6 +25,7 @@ volucris_engine_code(EditorEntry EDITOR_ENTRY_CODE_FILES)
 volucris_engine_code(Viewport VIEWPORT_CODE_FILES)
 volucris_engine_code(MaterialEditor MATERIAL_EDITOR_CODE_FILES)
 volucris_engine_code(ContentBrowser CONTENT_BROWSER_CODE_FILES)
+volucris_engine_code(Common COMMON_CODE_FILES)
 
 target_sources(${TARGET} PRIVATE 
     ${EDITOR_CORE_CODE_FILES}
@@ -32,6 +33,7 @@ target_sources(${TARGET} PRIVATE
     ${MATERIAL_EDITOR_CODE_FILES}
     ${VIEWPORT_CODE_FILES}
     ${CONTENT_BROWSER_CODE_FILES}
+    ${COMMON_CODE_FILES}
 )
 
 target_include_directories(${TARGET} PRIVATE 
