@@ -56,7 +56,7 @@ namespace volucris
 			return nullptr;
 		}
 
-		package->m_assetData = assetData;
+		package->setAssetData(assetData);
 
 		return package;
 	}

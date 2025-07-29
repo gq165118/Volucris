@@ -39,17 +39,6 @@ namespace volucris
 
 		// 恢复裁剪区域
 		draw_list->PopClipRect();
-
-		// 3. 计算居中位置
-		//ImVec2 text_pos = rect_min;
-		//text_pos.x += (rect_width - text_size.x) * 0.5f; // 水平居中
-		//text_pos.y += (rect_height - text_size.y) * 0.5f; // 垂直居中
-
-		//// 4. 绘制文字
-		//draw_list->AddText(font, fontSize, text_pos, ImGui::ColorConvertFloat4ToU32(color), text);
-
-		//// 5. (可选)绘制矩形边框
-		//draw_list->AddRect(rect_min, rect_max, IM_COL32(255, 0, 0, 128));
 	}
 
 	static glm::vec2 ItemSize = { 96,128 };
@@ -195,6 +184,10 @@ namespace volucris
 				if (ImGui::MenuItem("Reload"))
 				{
 					ReloadMaterial.invoke(SoftObject<MaterialTemplate>(m_assetData.path));
+				}
+				if (ImGui::MenuItem("Create Instance"))
+				{
+					CreateInstance.invoke(SoftObject<MaterialTemplate>(m_assetData.path));
 				}
 			}
 

@@ -9,7 +9,7 @@
 
 namespace volucris
 {
-	DECLARE_EVENT_MUTI_DELEGATE(OnAssetRegistered, void, const Package*)
+	DECLARE_EVENT_MUTI_DELEGATE(AssetRegisterEvent, void, const AssetData&)
 
 	class World;
 	class Package;
@@ -17,7 +17,8 @@ namespace volucris
 	class AssetManager
 	{
 	public:
-		OnAssetRegistered AssetRegistered;
+		AssetRegisterEvent AssetRegistered;
+		AssetRegisterEvent AssetUnregistered;
 
 	public:
 		~AssetManager() = default;
@@ -34,14 +35,10 @@ namespace volucris
 
 		void unregister(const std::string& packageName);
 
-		void updateAssetData(const std::string& packageName, const AssetData& assetData);
-
 		bool isPackageRegistered(const std::string& packageName) const
 		{
 			return m_assets.find(packageName) != m_assets.end();
 		}
-
-		void save(Package* package);
 
 		std::shared_ptr<GameObject> load(const std::string& packageName, World* world = nullptr);
 
@@ -65,6 +62,10 @@ namespace volucris
 			T object;
 			return getAssets(object.getClassName());
 		}
+
+		std::vector<std::string> getReferenceAssets(const std::string& packageName) const;
+
+		std::vector<AssetData> getAssetsInDirectory(const std::string& directory, bool currentOnly=true) const;
 
 	private:
 		void scanAssets(const std::string& rootPath);

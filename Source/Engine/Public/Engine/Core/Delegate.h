@@ -177,9 +177,8 @@ namespace volucris
 		template<typename T, typename Callable>
 		EventHandle bindObject(T* object, Callable&& callable)
 		{
-			static_assert(std::is_base_of<Object, T>::value, "should inherit from Object");
 			ObjectCallable objectCallable;
-			objectCallable.object = object->getShared<Object>();
+			objectCallable.object = object;
 			objectCallable.handle = createHandle([object, callable = callable](auto&& ...args)->ReturnType {
 				return std::invoke(callable, object, std::forward<Args>(args)...);
 				});
@@ -199,7 +198,7 @@ namespace volucris
 
 			for (auto& callable : m_objectCallables)
 			{
-				if (!callable.object.expired())
+				if (callable.object)
 				{
 					callable.call(std::forward<Args>(args)...);
 				}
@@ -215,7 +214,7 @@ namespace volucris
 		void unbind(Object* object)
 		{
 			VectorHelp::quickRemoveAllIf<ObjectCallable>(m_objectCallables, [object](const ObjectCallable& callable) {
-				return callable.object.lock().get() == object;
+				return callable.object == object;
 				});
 		}
 
@@ -247,14 +246,11 @@ namespace volucris
 
 		struct ObjectCallable
 		{
-			std::weak_ptr<Object> object;
+			Object* object;
 			EventHandle handle;
 			void call(Args&&... args)
 			{
-				if (auto obj = object.lock())
-				{
-					handle->invoke(std::forward<Args>(args)...);
-				}
+				handle->invoke(std::forward<Args>(args)...);
 			}
 		};
 		std::vector<ObjectCallable> m_objectCallables;

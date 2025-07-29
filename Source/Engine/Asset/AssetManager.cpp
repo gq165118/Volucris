@@ -7,6 +7,7 @@
 #include <Game/Texture2D.h>
 #include <Game/StaticMesh.h>
 #include <FileSystem/FileSystem.h>
+#include <Asset/AssetPath.h>
 
 namespace volucris
 {
@@ -45,42 +46,25 @@ namespace volucris
 		assetData.className = std::move(className);
 		assetData.guid = GUID::generate();
 		auto packageName = assetData.path;
-		package->m_assetData = assetData;
+		package->setAssetData(assetData);
 		m_assets[packageName] = object;
 		m_assetDatas[packageName] = assetData;
-		AssetRegistered.invoke(package);
+		AssetRegistered.invoke(assetData);
 
 		return true;
 	}
 
 	void AssetManager::unregister(const std::string& packageName)
 	{
-		
-	}
-
-	void AssetManager::updateAssetData(const std::string& packageName, const AssetData& assetData)
-	{
 		auto it = m_assetDatas.find(packageName);
-		if (it != m_assetDatas.end()) {
-			it->second = assetData; // 更新现有数据
-		} else {
-			V_LOG_WARN(Engine, "Asset data for package {} not found.", packageName);
-		}
-		
-		// todo: 触发事件通知
-		//m_packageRegisteredEvent.invoke(packageName);
-	}
-
-	void AssetManager::save(Package* package)
-	{
-		if (!package->getAssetObject())
+		if (it == m_assetDatas.end())
 		{
-			V_LOG_ERROR(Engine, "save package failed. not only 1 child");
 			return;
 		}
-
-		AssetWriter writer = AssetWriter(package->getShared<Package>());
-		writer.write();
+		auto assetData = it->second;
+		m_assetDatas.erase(it);
+		m_assets.erase(packageName);
+		AssetUnregistered.invoke(assetData);
 	}
 
 	std::shared_ptr<GameObject> AssetManager::load(const std::string& packageName, World* world)
@@ -159,5 +143,40 @@ namespace volucris
 				scanAssets(node.path); // 递归扫描子目录
 			}
 		}
+	}
+
+	std::vector<std::string> AssetManager::getReferenceAssets(const std::string& packageName) const
+	{
+		std::vector<std::string> referenceAssets;
+		for (const auto& [path, assetData] : m_assetDatas)
+		{
+			auto it = std::find(assetData.dependencies.begin(), assetData.dependencies.end(), packageName);
+			if (it != assetData.dependencies.end())
+			{
+				referenceAssets.push_back(assetData.path);
+			}
+		}
+		return referenceAssets;
+	}
+
+	std::vector<AssetData> AssetManager::getAssetsInDirectory(const std::string& directory, bool currentOnly) const
+	{
+		std::vector<AssetData> assets;
+		for (const auto& [path, assetData] : m_assetDatas)
+		{
+			if (assetData.path.find(directory) == 0)
+			{
+				if (currentOnly)
+				{
+					AssetPath path(assetData.path);
+					if (path.packagePath != directory)
+					{
+						continue; // 只获取当前目录下的资源
+					}
+				}
+				assets.push_back(assetData);
+			}
+		}
+		return assets;
 	}
 }

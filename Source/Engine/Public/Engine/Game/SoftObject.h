@@ -25,6 +25,14 @@ namespace volucris
 
 		}
 
+		template<typename U,
+			typename = std::enable_if_t<std::is_base_of_v<T, U>>>
+		SoftObject(const SoftObject<U>& other)
+			: m_path(other.getPath())
+			, m_object(std::dynamic_pointer_cast<T>(other.object()))
+		{
+		}
+
 		std::shared_ptr<T> tryLoad()
 		{
 			if (!m_object && isValid())

@@ -92,6 +92,13 @@ namespace volucris
 		}
 		return infos;
 	}
+
+	RTTR_REGISTRATION
+	{
+		rttr::registration::class_<Material>("Material")
+			.constructor<>()
+			.property("Parameters", &Material::getParameters, &Material::setParameters);
+	}
 }
 
 BOOST_CLASS_EXPORT_IMPLEMENT(volucris::Material)

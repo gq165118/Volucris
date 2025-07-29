@@ -31,6 +31,8 @@ namespace volucris
 
 		MaterialAssetEvent ReloadMaterial;
 
+		MaterialAssetEvent CreateInstance;
+
 	public:
 		ContentItemWidget();
 

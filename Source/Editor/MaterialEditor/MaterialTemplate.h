@@ -43,8 +43,6 @@ namespace volucris
 
 		void updateUniforms();
 
-		static float getDefaultFloatValue(const std::string& str);
-
 	private:
 		std::string m_vertexSourcePath;
 		std::string m_fragmentSourcePath;

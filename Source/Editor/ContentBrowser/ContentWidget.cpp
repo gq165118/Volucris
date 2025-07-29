@@ -15,6 +15,8 @@
 #include <Engine/Game/StaticMesh.h>
 #include "MaterialEditor/MaterialLoader.h"
 #include <MaterialEditor/MaterialEditorWidget.h>
+#include <Engine/Game/MaterialInstance.h>
+#include <Common/AssetTool.h>
 
 namespace fs = std::filesystem;
 
@@ -64,6 +66,14 @@ namespace volucris
 		, m_controlItem(nullptr)
 	{
 		setCurrentFolder(u8"/Engine/Content/Editor");
+		AssetManager::getInstance().AssetRegistered.bindObject(this, &ContentWidget::onAssetRegistered);
+		AssetManager::getInstance().AssetUnregistered.bindObject(this, &ContentWidget::onAssetUnregistered);
+	}
+
+	ContentWidget::~ContentWidget()
+	{
+		AssetManager::getInstance().AssetRegistered.unbind(this);
+		AssetManager::getInstance().AssetUnregistered.unbind(this);
 	}
 
 	void ContentWidget::setCurrentFolder(const std::string& folder)
@@ -83,44 +93,17 @@ namespace volucris
 			}
 		}
 
-		auto nodes = gFileSystem.getFileNodes(folder);
+		auto nodes = gFileSystem.getFileNodes(folder, (int)EFileType::Directory);
 		for (const auto& node : nodes)
 		{
-			if (node.type == EFileType::Directory)
-			{
-				m_items.emplace_back(createFolderItem(node.path));
-			}
+			m_items.emplace_back(createFolderItem(node.path));
 		}
 
-		const Icon textureIcon = { { 1, 0 }, { 128,128 } };
-		for (const auto& node : nodes)
-		{
-			if (node.type != EFileType::Directory)
-			{
-				auto assetData = AssetManager::getInstance().loadAssetData(node.path);
-				if (!assetData.path.empty())
-				{
-					std::unique_ptr<ContentItemWidget> item = nullptr;
-					if (assetData.className == "Texture2D")
-					{
-						item = createTextureItem(node.path);
-					}
-					else if (assetData.className == "StaticMesh")
-					{
-						item = createStaticMeshItem(node.path);
-					}
-					else if (assetData.className == "Material")
-					{
-						item = createTextureItem(node.path);
-					}
+		const auto& assets = AssetManager::getInstance().getAssetsInDirectory(folder);
 
-					if (item)
-					{
-						item->setAssetData(assetData);
-						m_items.emplace_back(std::move(item));
-					}
-				}
-			}
+		for (const auto& assetData : assets)
+		{
+			addAssetItem(assetData);
 		}
 	}
 
@@ -270,8 +253,7 @@ namespace volucris
 					package->setObject(texture);
 					if (AssetManager::getInstance().registry(package.get()))
 					{
-						AssetManager::getInstance().save(package.get());
-						GEditorWorld->addObject(texture);
+						gAssetTool.addDirtyAsset(packageName, texture);
 					}
 					V_LOG_INFO(Editor, "convert image success, {}", packageName);
 				}
@@ -290,8 +272,7 @@ namespace volucris
 						package->setObject(res.mesh);
 						if (AssetManager::getInstance().registry(package.get()))
 						{
-							AssetManager::getInstance().save(package.get());
-							GEditorWorld->addObject(res.mesh);
+							gAssetTool.addDirtyAsset(packageName, res.mesh);
 						}
 
 						V_LOG_INFO(Editor, "convert mesh success, {}", packageName);
@@ -346,20 +327,33 @@ namespace volucris
 				package->setObject(mat);
 				if (AssetManager::getInstance().registry(package.get()))
 				{
-					AssetManager::getInstance().save(package.get());
-					GEditorWorld->addObject(mat);
+					gAssetTool.addDirtyAsset(packageName, mat);
 				}
 			}
 		}
 		return true;
 	}
 
-	void ContentWidget::onAssetRegistered(Package* package)
+	void ContentWidget::onAssetRegistered(const AssetData& assetData)
 	{
-		if (package->getAssetData().path.compare(0, m_folder.length(), m_folder) == 0)
+		if (assetData.path.find(m_folder) != 0)
 		{
-			
+			return; // 只处理当前目录下的资源
 		}
+		addAssetItem(assetData);
+	}
+
+	void ContentWidget::onAssetUnregistered(const AssetData& assetData)
+	{
+		if (assetData.path.find(m_folder) != 0)
+		{
+			return; // 只处理当前目录下的资源
+		}
+		auto it = std::remove_if(m_items.begin(), m_items.end(),
+			[&assetData](const std::unique_ptr<ContentItemWidget>& item) {
+				return item->getAssetData().path == assetData.path;
+			});
+		m_items.erase(it, m_items.end());
 	}
 
 	std::unique_ptr<ContentItemWidget> ContentWidget::createItem(const FileNode& node, const Icon& icon, const std::string& name)
@@ -432,8 +426,29 @@ namespace volucris
 
 			auto package = std::make_shared<Package>(material.getPath());
 			package->setObject(material.object());
-			AssetManager::getInstance().save(package.get());
+			gAssetTool.addDirtyAsset(material.getPath(), material.object());
 			});
+		item->CreateInstance.bind([this](SoftObject<MaterialTemplate> material) {
+			if (!material.tryLoad())
+			{
+				V_LOG_ERROR(Editor, "Failed to reload material: {}", material.object()->getDisplayName());
+				return;
+			}
+
+			auto matInstance = std::make_shared<MaterialInstance>();
+			matInstance->setMaterial(material);
+			matInstance->setDisplayName(fmt::format("{}_Inst", material.object()->getDisplayName()));
+			auto packageName = getDefaultPackageName(fs::path(m_folder), matInstance->getDisplayName());
+			auto package = std::make_shared<Package>(packageName);
+			package->setObject(matInstance);
+			if (AssetManager::getInstance().registry(package.get()))
+			{
+				gAssetTool.addDirtyAsset(packageName, matInstance);
+			}
+			else
+			{
+				V_LOG_ERROR(Editor, "Failed to create material instance: {}", matInstance->getDisplayName());
+			}});
 		return item;
 	}
 
@@ -453,6 +468,29 @@ namespace volucris
 		node.type = EFileType::Asset;
 		Icon icon = { {2,0}, {128,128} };
 		return createItem(node, icon);
+	}
+
+	void ContentWidget::addAssetItem(const AssetData& assetData)
+	{
+		std::unique_ptr<ContentItemWidget> item = nullptr;
+		if (assetData.className == "Texture2D")
+		{
+			item = createTextureItem(assetData.path);
+		}
+		else if (assetData.className == "StaticMesh")
+		{
+			item = createStaticMeshItem(assetData.path);
+		}
+		else if (assetData.className == "Material" || assetData.className == "MaterialInstance")
+		{
+			item = createTextureItem(assetData.path);
+		}
+
+		if (item)
+		{
+			item->setAssetData(assetData);
+			m_items.emplace_back(std::move(item));
+		}
 	}
 
 	void ContentWidget::deleteItem(ContentItemWidget* item)

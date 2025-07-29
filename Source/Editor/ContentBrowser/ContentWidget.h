@@ -4,6 +4,7 @@
 #include <Engine/Application/Widget.h>
 #include <glm/glm.hpp>
 #include <Engine/FileSystem/FileSystem.h>
+#include <Engine/Asset/AssetData.h>
 
 namespace volucris
 {
@@ -16,6 +17,8 @@ namespace volucris
 	public:
 		ContentWidget();
 
+		~ContentWidget() override;
+
 		void setCurrentFolder(const std::string& folder);
 
 	protected:
@@ -27,7 +30,9 @@ namespace volucris
 
 		bool onDrop(DropEvent* event) override;
 
-		void onAssetRegistered(Package* package);
+		void onAssetRegistered(const AssetData& assetData);
+
+		void onAssetUnregistered(const AssetData& assetData);
 
 	private:
 		struct Icon
@@ -43,6 +48,8 @@ namespace volucris
 		std::unique_ptr<ContentItemWidget> createTextureItem(const std::string& path);
 
 		std::unique_ptr<ContentItemWidget> createStaticMeshItem(const std::string& path);
+
+		void addAssetItem(const AssetData& assetData);
 
 		void deleteItem(ContentItemWidget* item);
 
