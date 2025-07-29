@@ -25,7 +25,32 @@ namespace volucris
         auto entity = std::make_shared<Entity>();
         auto comp = std::make_shared<StaticMeshComponent>();
         m_meshComponent = comp;
-        comp->setStaticMesh(SoftObject<StaticMesh>("/Engine/Content/Editor/Cube"));
+        auto mesh = std::make_shared<StaticMesh>();
+        {
+            MeshData data;
+            data.setVertices({
+                {-1, -1, 0.0},
+                {1, -1, 0.0},
+                {1, 1, 0.0},
+                {-1, 1, 0.0},
+                });
+            data.setUV0({
+                {0.0,0.0,0.0},
+                {1.0,0.0,0.0},
+                {1.0,1.0,0.0},
+                {0.0,1.0,0.0}
+                });
+            mesh->setMeshData(std::move(data));
+            auto ele = std::make_unique<SmallMeshElements>();
+            ele->create() = 0;
+            ele->create() = 1;
+            ele->create() = 2;
+            ele->create() = 0;
+            ele->create() = 2;
+            ele->create() = 3;
+            mesh->addSubMesh(std::move(ele));
+        }
+        comp->setStaticMesh(mesh);
         entity->attach(comp);
         m_world->getPersistentRegion()->addEntity(entity);
         m_viewport->setWorld(m_world);

@@ -71,6 +71,13 @@ namespace volucris
 					m_floatParameters.push_back(parameter);
 				}
 					break;
+				case volucris::MaterialParamterType::Int:
+				{
+					MaterialIntParameter parameter = MaterialIntParameter(info.name, std::get<int>(info.value));
+					parameter.setId(idx);
+					m_intParameters.push_back(parameter);
+				}
+				break;
 				case volucris::MaterialParamterType::Vector4:
 				{
 					MaterialVector4Parameter parameter = MaterialVector4Parameter(info.name, std::get<glm::vec4>(info.value));
@@ -111,6 +118,15 @@ namespace volucris
 			MaterialParameter param;
 			param.name = parameter.getName();
 			param.type = MaterialParamterType::Float;
+			param.value = parameter.getValue();
+			parameters.push_back(param);
+		}
+
+		for (const auto& parameter : m_intParameters)
+		{
+			MaterialParameter param;
+			param.name = parameter.getName();
+			param.type = MaterialParamterType::Int;
 			param.value = parameter.getValue();
 			parameters.push_back(param);
 		}
@@ -156,6 +172,15 @@ namespace volucris
 			}
 		}
 
+		for (auto& parameter : m_intParameters)
+		{
+			if (parameter.isDirty())
+			{
+				parameters.push_back(parameter.getUpdateInfo());
+				parameter.markDirty(false);
+			}
+		}
+
 		for (auto& parameter : m_vec4Parameters)
 		{
 			if (parameter.isDirty())
@@ -181,6 +206,12 @@ namespace volucris
 	{
 		std::vector<MaterialParameterUpdateInfo> parameters;
 		for (auto& parameter : m_floatParameters)
+		{
+			parameters.push_back(parameter.getUpdateInfo());
+			parameter.markDirty(false);
+		}
+
+		for (auto& parameter : m_intParameters)
 		{
 			parameters.push_back(parameter.getUpdateInfo());
 			parameter.markDirty(false);
@@ -234,6 +265,21 @@ namespace volucris
 		}
 		return false;
 	}
+
+	bool MaterialInstance::setIntParameter(const std::string& name, int value)
+	{
+		for (auto& param : m_intParameters)
+		{
+			if (param.getName() == name)
+			{
+				param.setValue(value);
+				m_dirty = true;
+				return true;
+			}
+		}
+		return false;
+	}
+
 
 	bool MaterialInstance::setVector4Parameter(const std::string& name, const glm::vec4& value)
 	{

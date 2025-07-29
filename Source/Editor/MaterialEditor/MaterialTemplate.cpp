@@ -19,6 +19,14 @@ namespace volucris
 		return value;
 	}
 
+	static int stringToInt(std::string_view str)
+	{
+		if (str.empty()) { return 0; }
+		int value = 0;
+		auto result = std::from_chars(str.data(), str.data() + str.size(), value);
+		return value;
+	}
+
 	static glm::vec4 stringToVec4(std::string_view str)
 	{
 		glm::vec4 value = { 0,0,0,1 };
@@ -172,6 +180,13 @@ namespace volucris
 				info.name = uniform.name;
 				info.type = MaterialParamterType::Texture2D;
 				info.value = SoftObject<Texture2D>();
+				parameters.push_back(info);
+			}
+			else if (uniform.type == "int")
+			{
+				info.name = uniform.name;
+				info.type = MaterialParamterType::Int;
+				info.value = stringToInt(uniform.property.value);
 				parameters.push_back(info);
 			}
 			else

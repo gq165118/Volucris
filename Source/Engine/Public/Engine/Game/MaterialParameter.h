@@ -56,6 +56,15 @@ namespace volucris
 			return info;
 		}
 
+		static MaterialParameterUpdateInfo getParameterUpdateInfo(size_t id, const int& value)
+		{
+			MaterialParameterUpdateInfo info;
+			info.id = id;
+			info.type = MaterialParamterType::Int;
+			info.value = value;
+			return info;
+		}
+
 		static MaterialParameterUpdateInfo getParameterUpdateInfo(size_t id, const glm::vec4& value)
 		{
 			MaterialParameterUpdateInfo info;
@@ -86,7 +95,7 @@ namespace volucris
 	{
 		std::string name;
 		MaterialParamterType type = MaterialParamterType::Float;
-		std::variant<float, glm::vec4, glm::mat4, SoftObject<Texture2D>> value;
+		std::variant<float, int, glm::vec4, glm::mat4, SoftObject<Texture2D>> value;
 
 		template <class Archive>
 		void serialize(Archive& ar, const unsigned int version)
@@ -195,6 +204,7 @@ namespace volucris
 	};
 
 	using MaterialFloatParameter = MaterialParameterTemplate<float>;
+	using MaterialIntParameter = MaterialParameterTemplate<int>;
 	using MaterialVector4Parameter = MaterialParameterTemplate<glm::vec4>;
 	using MaterialTexture2DParameter = MaterialParameterTemplate<SoftObject<Texture2D>>;
 }

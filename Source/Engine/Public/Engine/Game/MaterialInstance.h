@@ -44,6 +44,8 @@ namespace volucris
 
 		bool setFloatParameter(const std::string& name, float value);
 
+		bool setIntParameter(const std::string& name, int value);
+
 		bool setVector4Parameter(const std::string& name, const glm::vec4& value);
 
 		bool setTexture2DParameter(const std::string& name, const SoftObject<Texture2D>& value);
@@ -76,6 +78,7 @@ namespace volucris
 	private:
 		SoftObject<Material> m_material;
 		std::vector<MaterialFloatParameter> m_floatParameters;
+		std::vector<MaterialIntParameter> m_intParameters;
 		std::vector<MaterialVector4Parameter> m_vec4Parameters;
 		std::vector<MaterialTexture2DParameter> m_texture2dParameters;
 		std::weak_ptr<MaterialProxy> m_proxy;

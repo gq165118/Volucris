@@ -65,6 +65,12 @@ namespace volucris
 					auto type = paramter.desc.type;
 					switch (type)
 					{
+					case volucris::MaterialParamterType::Int:
+						if (ImGui::DragInt("##", std::get_if<int>(&info.value), 0))
+						{
+							m_material->setIntParameter(info.name, std::get<int>(info.value));
+						}
+						break;
 					case volucris::MaterialParamterType::Float:
 						if (ImGui::DragFloat("##", std::get_if<float>(&info.value), 0.1f))
 						{

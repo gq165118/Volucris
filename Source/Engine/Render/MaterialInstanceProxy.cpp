@@ -39,6 +39,9 @@ namespace volucris
 			{
 			case volucris::MaterialParamterType::Float:
 				static_cast<RHIUniformFloat*>(uniform)->setValue(std::get<float>(parameter.value));
+				break;	
+			case volucris::MaterialParamterType::Int:
+				static_cast<RHIUniformInt*>(uniform)->setValue(std::get<int>(parameter.value));
 				break;
 			case volucris::MaterialParamterType::Vector4:
 				static_cast<RHIUniformVec4*>(uniform)->setValue(std::get<glm::vec4>(parameter.value));

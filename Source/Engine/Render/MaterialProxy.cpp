@@ -62,6 +62,13 @@ namespace volucris
 				uniform = std::move(uni);
 			}
 				break;
+			case volucris::MaterialParamterType::Int:
+			{
+				auto uni = std::make_unique<RHIUniformInt>();
+				uni->setValue(texIdx++);
+				uniform = std::move(uni);
+			}
+			break;
 			default:
 				v_check(false)
 				break;
