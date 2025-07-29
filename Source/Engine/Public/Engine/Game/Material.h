@@ -12,6 +12,8 @@ namespace volucris
 
 	class Material : public GameObject
 	{
+		RTTR_ENABLE(GameObject)
+
 	public:
 		Material();
 
@@ -21,11 +23,6 @@ namespace volucris
 		{
 			m_vss = std::move(vss);
 			m_fss = std::move(fss);
-		}
-
-		void setParameters(std::vector<MaterialParameter> parameters)
-		{
-			m_parameters = std::move(parameters);
 		}
 
 		template <class Archive>
@@ -38,6 +35,11 @@ namespace volucris
 		}
 
 		std::string getClassName() const { return "Material"; }
+
+		void setParameters(const std::vector<MaterialParameter>& parameters)
+		{
+			m_parameters = std::move(parameters);
+		}
 
 		const std::vector<MaterialParameter>& getParameters() const { return m_parameters; }
 

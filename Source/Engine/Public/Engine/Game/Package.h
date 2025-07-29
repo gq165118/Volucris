@@ -17,6 +17,12 @@ namespace volucris
 
 		~Package() override;
 
+		void setAssetData(const AssetData& assetData)
+		{
+			m_assetData = assetData;
+			m_assetData.className = m_object ? m_object->getClassName() : "";
+		}
+
 		void setAssetClassName(const std::string& name)
 		{
 			m_assetData.className = name;
@@ -39,8 +45,6 @@ namespace volucris
 		}
 
 	private:
-		friend class AssetManager;
-		friend class AssetReader;
 		AssetData m_assetData; // 包含的资源数据
 		std::shared_ptr<GameObject> m_object;
 	};

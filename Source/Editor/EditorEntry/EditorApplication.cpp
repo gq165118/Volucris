@@ -26,7 +26,7 @@ namespace volucris
 
 	bool EditorApplication::openEditor(const AssetData& assetData)
 	{
-		if (assetData.className == "Material")
+		if (assetData.className == "MaterialInstance")
 		{
 			std::shared_ptr<EditorWindow> window = nullptr;
 			if (!m_materialEditorWindow.expired())
@@ -44,9 +44,7 @@ namespace volucris
 			window->addChild(widget);
 			m_materialEditorWindow = window;
 
-			auto inst = std::make_shared<MaterialInstance>();
-			inst->setMaterial(SoftObject<Material>(assetData.path));
-			widget->setMaterial(inst);
+			widget->setMaterial(AssetManager::getInstance().loadAsset<MaterialInstance>(assetData.path));
 
 			pushCommand([this, window]() {addWindow(window); });
 
