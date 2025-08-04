@@ -211,7 +211,7 @@ namespace volucris
 			delete handle;
 		}
 
-		void unbind(Object* object)
+		void unbind(void* object)
 		{
 			VectorHelp::quickRemoveAllIf<ObjectCallable>(m_objectCallables, [object](const ObjectCallable& callable) {
 				return callable.object == object;
@@ -246,7 +246,7 @@ namespace volucris
 
 		struct ObjectCallable
 		{
-			Object* object;
+			void* object;
 			EventHandle handle;
 			void call(Args&&... args)
 			{

@@ -1,7 +1,6 @@
 #ifndef __volucris_asset_manager_h__
 #define __volucris_asset_manager_h__
 
-#include <Engine/Game/GameObject.h>
 #include <map>
 #include "AssetData.h"
 #include <Engine/Core/Delegate.h>
@@ -9,16 +8,20 @@
 
 namespace volucris
 {
-	DECLARE_EVENT_MUTI_DELEGATE(AssetRegisterEvent, void, const AssetData&)
+	DECLARE_EVENT_MUTI_DELEGATE(PackageEvent, void, Package*)
+	DECLARE_EVENT_MUTI_DELEGATE(AssetUnRegisterEvent, void, const std::string&)
+	DECLARE_EVENT_MUTI_DELEGATE(AssetLoaded, void, Package*)
 
 	class World;
 	class Package;
+	class GameObject;
 
 	class AssetManager
 	{
 	public:
-		AssetRegisterEvent AssetRegistered;
-		AssetRegisterEvent AssetUnregistered;
+		PackageEvent AssetRegistered;
+		PackageEvent AssetLoaded;
+		AssetUnRegisterEvent AssetUnregistered;
 
 	public:
 		~AssetManager() = default;
@@ -52,7 +55,21 @@ namespace volucris
 			return nullptr;
 		}
 
-		AssetData loadAssetData(const std::string& packageName) const;
+		void updateAssetDependence(GameObject* object);
+
+		bool save(const std::shared_ptr<Package>& package);
+
+		std::shared_ptr<GameObject> tryLoad(const std::string& packageName, World* world = nullptr)
+		{
+			auto it = m_assets.find(packageName);
+			if (it != m_assets.end() && !it->second.expired())
+			{
+				return it->second.lock();
+			}
+			return nullptr;
+		}
+
+		AssetData getAssetData(const std::string& packageName) const;
 
 		std::vector<AssetData> getAssets(const std::string& className) const;
 
@@ -65,7 +82,7 @@ namespace volucris
 
 		std::vector<std::string> getReferenceAssets(const std::string& packageName) const;
 
-		std::vector<AssetData> getAssetsInDirectory(const std::string& directory, bool currentOnly=true) const;
+		std::vector<AssetData> getAssetsInDirectory(const std::string& directory, bool recursion =false) const;
 
 	private:
 		void scanAssets(const std::string& rootPath);

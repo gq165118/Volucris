@@ -2,6 +2,7 @@
 #include <Engine/RHI/RHITexture.h>
 #include <imgui_internal.h>
 #include <filesystem>
+#include "AssetMenuContext.h"
 
 namespace fs = std::filesystem;
 
@@ -44,58 +45,27 @@ namespace volucris
 	static glm::vec2 ItemSize = { 96,128 };
 
 	ContentItemWidget::ContentItemWidget()
-		: m_texture(nullptr)
-		, m_minUV()
-		, m_maxUV()
-		, m_size(ItemSize)
+		: m_size(ItemSize)
 		, m_iconSpace()
 		, m_iconDrawSize()
-		, m_hoverColor({ 0.9411, 0.850, 0.559 ,1.0})
+		, m_hoverColor({ 0.9411, 0.850, 0.559 ,1.0 })
 		, m_selectedColor({ 0.882, 0.725, 0.219 ,1.0 })
 		, m_selected(false)
-		, m_node()
-		, m_iconPos()
-		, m_iconSize()
 		, m_text()
 		, m_clicked(false)
 		, m_editing(false)
 		, m_deleteSelected(false)
 		, m_selectable(true)
+		, m_asset(nullptr)
+		, m_textColor(1.0,1.0,1.0,1.0)
 	{
 		setScale(1.0);
 	}
 
-	ContentItemWidget::ContentItemWidget(const FileNode& node)
-		: ContentItemWidget()
+	void ContentItemWidget::setContext(std::unique_ptr<ItemContext> asset)
 	{
-		setFileNode(node);
-	}
-
-	ContentItemWidget::ContentItemWidget(RHITexture2D* texture, Point iconPos, Size iconSize)
-		: ContentItemWidget()
-	{
-		setIcon(iconPos, iconSize);
-		setTexture(texture);
-	}
-
-	void ContentItemWidget::setFileNode(const FileNode& node)
-	{
-		m_node = node;
-		setDisplayName(fs::path(m_node.path).stem().generic_string());
-	}
-
-	void ContentItemWidget::setTexture(RHITexture2D* texture)
-	{
-		m_texture = texture;
-		update();
-	}
-
-	void ContentItemWidget::setIcon(Point iconPos, Size iconSize)
-	{
-		m_iconPos = iconPos;
-		m_iconSize = iconSize;
-
-		update();
+		m_asset = std::move(asset);
+		setDisplayName(m_asset->getDisplayName());
 	}
 
 	void ContentItemWidget::setScale(float scale)
@@ -109,23 +79,9 @@ namespace volucris
 		m_fontSize = 16 * scale;
 	}
 
-	void ContentItemWidget::update()
-	{
-		if (!m_texture)
-		{
-			return;
-		}
-
-		auto texSize = m_texture->getSize();
-		auto ustep = m_iconSize.width * 1.0f / texSize.width;
-		auto vstep = m_iconSize.height * 1.0f / texSize.height;
-
-		m_minUV = { m_iconPos.x * ustep, 1.0f - m_iconPos.y * vstep };
-		m_maxUV = { m_minUV.x + ustep, m_minUV.y - vstep };
-	}
-
 	void ContentItemWidget::build()
 	{
+		if (!m_asset) 			return;
 		ImGuiWindow* window = ImGui::GetCurrentWindow();
 		if (window->SkipItems)
 			return;
@@ -151,47 +107,24 @@ namespace volucris
 				auto duration = m_timer.getDuration();
 				if (duration < 0.5)
 				{
-					DoubleClicked.invoke(this);
+					m_asset->doubleClicked();
 				}
 				else
 				{
 					m_timer.start();
-					Clicked.invoke(this);
+					m_asset->clicked();
 				}
 			}
 			else
 			{
 				m_timer.start();
-				Clicked.invoke(this);
+				m_asset->clicked();
 			}
 		}
-		else if (m_selectable && ImGui::BeginPopupContextItem())
+		else if (m_selectable && m_asset->buildMenuContext())
 		{
 			m_selected = true;
-			Clicked.invoke(this);
-			if (ImGui::MenuItem("Rename"))
-			{
-				m_editing = true;
-			}
-			if (ImGui::MenuItem("Delete"))
-			{
-				m_deleteSelected = true;
-			}
-
-			if (m_assetData.className == "Material")
-			{
-				ImGui::SeparatorText("Material");
-				if (ImGui::MenuItem("Reload"))
-				{
-					ReloadMaterial.invoke(SoftObject<MaterialTemplate>(m_assetData.path));
-				}
-				if (ImGui::MenuItem("Create Instance"))
-				{
-					CreateInstance.invoke(SoftObject<MaterialTemplate>(m_assetData.path));
-				}
-			}
-
-			ImGui::EndPopup();
+			m_asset->clicked();
 		}
 
 		if (hovered)
@@ -209,16 +142,17 @@ namespace volucris
 			);
 		}
 
-		if (m_texture)
+		const auto& thumbnail = m_asset->getThumbnail();
+		if (thumbnail.isValid())
 		{
-			auto id = m_texture->getId();
+			auto id = thumbnail.texture->getId();
 			ImTextureID texID = (ImTextureID)(intptr_t)id;
 
 			window->DrawList->AddImage(texID,
 				iconRectMin,
 				iconRectMax,
-				{ m_minUV.x, m_minUV.y },
-				{ m_maxUV.x, m_maxUV.y }
+				{ thumbnail.minUV.x, thumbnail.minUV.y },
+				{ thumbnail.maxUV.x, thumbnail.maxUV.y }
 			);
 		}
 
@@ -238,28 +172,41 @@ namespace volucris
 					ImGui::ActivateItemByID(ImGui::GetItemID());
 				}
 				std::string name = m_text;
-				if (name.empty())
+				if (!name.empty())
 				{
-					setDisplayName(fs::path(m_node.path).stem().generic_string());
+					m_asset->rename(name);
 				}
-				else
-				{
-					FileNode node = m_node;
-					node.path = (fs::path(m_node.path).parent_path() / name).generic_u8string();
-					NodeNameChanged.invoke(this, node);
-				}
+				setDisplayName(m_asset->getDisplayName());
 				m_editing = false;
 			}
 			ImGui::EndChild();
 		}
 		else
 		{
-			DrawTextCenteredInRect(fontRectMin, fontRectMax, m_fontSize, m_text);
+			DrawTextCenteredInRect(fontRectMin, fontRectMax, m_fontSize, m_text, { m_textColor.r, m_textColor.g, m_textColor.b, m_textColor.a});
+		}
+
+		if (m_asset->shouldExecuteCommmand())
+		{
+			m_asset->execute();
 		}
 	}
+
+
 	glm::vec2 ContentItemWidget::getItemSize(float scale)
 	{
 		return ItemSize * scale;
+	}
+
+	ItemContext* ContentItemWidget::getItemContext() const
+	{
+		return m_asset.get();
+	}
+
+	void ContentItemWidget::setEditing(bool editing)
+	{
+		m_editing = editing;
+		setDisplayName(m_editing ? m_asset->getAssetName() : m_asset->getDisplayName());
 	}
 
 	void ContentItemWidget::setDisplayName(const std::string& name)

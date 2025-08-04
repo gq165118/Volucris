@@ -20,11 +20,13 @@ namespace volucris
 		void markRenderStateDirty()
 		{
 			m_dirtyFlags |= DirtyFlag::RenderState;
+			markDirty(true);
 		}
 
 		void markTransformDirty()
 		{
 			m_dirtyFlags |= DirtyFlag::TransformState;
+			markDirty(true);
 		}
 
 		Entity* getEntity() const { return m_entity; }

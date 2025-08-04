@@ -240,9 +240,9 @@ namespace volucris
 		
 	}
 
-    RHITexture2D* EditorWindow::getEditorIconTexture() const
+    std::shared_ptr<RHITexture2D> EditorWindow::getEditorIconTexture() const
     {
-        return m_iconTexture.get();
+        return m_iconTexture;
     }
 
     StaticMesh* EditorWindow::getQuadMesh() const
@@ -288,7 +288,7 @@ namespace volucris
             desc.sourceFormat = data.format;
             desc.pixelFormat = Texture::EPixelFormat::R8G8B8A8;
             desc.texClass = TextureType::Texture2D;
-            m_iconTexture = std::make_unique<RHITexture2D>(desc);
+            m_iconTexture = std::make_shared<RHITexture2D>(desc);
             m_iconTexture->setContext(cmdList);
             m_iconTexture->createGpuResource();
             m_iconTexture->init(data.data);

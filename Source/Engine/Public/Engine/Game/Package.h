@@ -30,8 +30,11 @@ namespace volucris
 
 		void setObject(const std::shared_ptr<GameObject>& object)
 		{
-			m_object = object;
-			m_assetData.className = object->getClassName();
+			if (object.get() != this)
+			{
+				m_object = object;
+				m_assetData.className = object->getClassName();
+			}
 		}
 
 		std::shared_ptr<GameObject> getAssetObject() const { return m_object; }
@@ -42,6 +45,15 @@ namespace volucris
 		void serialize(Archive& ar, const unsigned int version)
 		{
 			ar& m_object;
+		}
+
+		void updateDependecies()
+		{
+			m_assetData.dependencies.clear();
+			if (m_object)
+			{
+				m_assetData.dependencies = m_object->collectDependencies();
+			}
 		}
 
 	private:

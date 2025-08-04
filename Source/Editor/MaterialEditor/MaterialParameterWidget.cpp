@@ -3,23 +3,38 @@
 #include "MaterialTemplate.h"
 #include <Engine/Game/MaterialInstance.h>
 #include <Common/AssetItemWidget.h>
+#include <Common/AssetTool.h>
   
 namespace volucris
 {
 	MaterialParameterWidget::MaterialParameterWidget()
 		: Widget()
-		, m_material(nullptr)
+		, m_material()
+		, m_parameters()
 	{
 	}
 
-	void MaterialParameterWidget::setMaterial(const std::shared_ptr<MaterialInstance>& material)
+	void MaterialParameterWidget::setMaterial(const SoftObject<MaterialInstance>& material)
 	{
 		m_material = material;
 		m_parameters.clear();
-		for (const auto& parameter : material->getInstanceParameters())
+
+		if (!m_material.tryLoad())
+		{
+			return;
+		}
+
+		for (const auto& parameter : m_material->getInstanceParameters())
 		{
 			UniformProperty property;
-			std::dynamic_pointer_cast<MaterialTemplate>(material->getMaterial().object())->findProperty(parameter.name, property);
+			if (auto baseMaterial = m_material->getBaseMaterial())
+			{
+				if (auto tempMaterial = dynamic_cast<MaterialTemplate*>(baseMaterial))
+				{
+					tempMaterial->findProperty(parameter.name, property);
+				}
+			}
+			
 			auto it = m_parameters.find(property.group);
 			Parameter param;
 			param.desc = parameter;

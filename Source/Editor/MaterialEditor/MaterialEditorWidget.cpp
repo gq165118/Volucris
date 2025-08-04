@@ -17,7 +17,7 @@ namespace volucris
     MaterialEditorWidget::MaterialEditorWidget()
         : m_viewport(std::make_shared<ViewportWidget>())
         , m_world(std::make_shared<GameWorld>())
-        , m_material(nullptr)
+        , m_material()
         , m_parameterWidget(std::make_shared<MaterialParameterWidget>())
     {
         addChild(m_viewport);
@@ -62,11 +62,9 @@ namespace volucris
         gApp->removeGame(m_world);
     }
 
-    void MaterialEditorWidget::setMaterial(const std::shared_ptr<MaterialInstance>& material)
+    void MaterialEditorWidget::setMaterial(const SoftObject<MaterialInstance>& material)
     {
         m_material = material;
-        material->setTexture2DParameter("u_texture", SoftObject<Texture2D>("/Engine/Content/Editor/T_container"));
-        material->setTexture2DParameter("u_texture2", SoftObject<Texture2D>("/Engine/Content/Editor/T_awesomeface"));
         m_meshComponent->setMaterial(0, material);
         m_parameterWidget->setMaterial(material);
     }

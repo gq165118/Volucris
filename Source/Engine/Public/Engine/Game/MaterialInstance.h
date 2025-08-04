@@ -32,6 +32,8 @@ namespace volucris
 
 		const SoftObject<Material>& getMaterial() const { return m_material;  }
 
+		Material* getBaseMaterial() override;
+
 		template <class Archive>
 		void serialize(Archive& ar, const unsigned int version)
 		{
@@ -40,6 +42,15 @@ namespace volucris
 			ar& m_floatParameters;
 			ar& m_vec4Parameters;
 			ar& m_texture2dParameters;
+			if (Archive::is_loading::value)
+			{
+				m_material.tryLoad();
+
+				for (auto& textureParameter : m_texture2dParameters)
+				{
+					textureParameter.load();
+				}
+			}
 		}
 
 		bool setFloatParameter(const std::string& name, float value);
@@ -62,11 +73,9 @@ namespace volucris
 
 		std::vector<MaterialParameter> getInstanceParameters() const;
 
-		void markDirty(bool dirty) { m_dirty = dirty; }
-
-		bool isDirty() const { return m_dirty; }
-
 		MaterialUpdateData getUpdateData();
+
+		std::vector<std::string> collectDependencies() const override;
 
 	protected:
 		std::vector<MaterialParameterUpdateInfo> getUpdateParameterInfos();
@@ -82,7 +91,6 @@ namespace volucris
 		std::vector<MaterialVector4Parameter> m_vec4Parameters;
 		std::vector<MaterialTexture2DParameter> m_texture2dParameters;
 		std::weak_ptr<MaterialProxy> m_proxy;
-		bool m_dirty;
 	};
 }
 

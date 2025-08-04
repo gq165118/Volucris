@@ -2,6 +2,8 @@
 #define __volucris_material_editor_widget_h__
 
 #include <Engine/Application/Widget.h>
+#include <Engine/Game/SoftObject.h>
+#include <Engine/Game/MaterialInstance.h>
 
 namespace volucris
 {
@@ -18,7 +20,7 @@ namespace volucris
 
 		~MaterialEditorWidget() override;
 
-		void setMaterial(const std::shared_ptr<MaterialInstance>& material);
+		void setMaterial(const SoftObject<MaterialInstance>& material);
 
 	protected:
 		void onBuild(bool init) override;
@@ -28,7 +30,7 @@ namespace volucris
 	private:
 		std::shared_ptr<ViewportWidget> m_viewport;
 		std::shared_ptr<GameWorld> m_world;
-		std::shared_ptr<MaterialInstance> m_material;
+		SoftObject<MaterialInstance> m_material;
 		std::shared_ptr<StaticMeshComponent> m_meshComponent;
 		std::shared_ptr<MaterialParameterWidget> m_parameterWidget;
 	};

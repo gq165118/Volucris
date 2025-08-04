@@ -17,30 +17,13 @@
 #include <MaterialEditor/MaterialEditorWidget.h>
 #include <Engine/Game/MaterialInstance.h>
 #include <Common/AssetTool.h>
+#include <Engine/Asset/AssetPath.h>
+#include "AssetMenuContext.h"
 
 namespace fs = std::filesystem;
 
 namespace volucris
 {
-	static std::string getDefaultPackageName(const fs::path& dirpath, const std::string& name)
-	{
-		std::string packageName = (dirpath / name).generic_u8string();
-		std::string assetName = fmt::format("{}.asset", packageName);
-		if (gFileSystem.fileExists(assetName) || AssetManager::getInstance().isPackageRegistered(packageName))
-		{
-			for (size_t i = 1; i < std::numeric_limits<size_t>::max(); ++i)
-			{
-				packageName = (dirpath / fmt::format("{}_{}", name, i)).generic_u8string();
-				assetName = fmt::format("{}.asset", packageName);
-				if (!gFileSystem.fileExists(assetName) && !AssetManager::getInstance().isPackageRegistered(packageName))
-				{
-					break;
-				}
-			}
-		}
-		return packageName;
-	}
-
 	static std::string getDefaultFolderName(const fs::path& dirpath, const std::string& name)
 	{
 		std::string folderName = (dirpath / name).generic_u8string();
@@ -63,31 +46,35 @@ namespace volucris
 		, m_scale(1.0)
 		, m_itemSize(ContentItemWidget::getItemSize())
 		, m_multiSelect(false)
-		, m_controlItem(nullptr)
+		, m_folderDirty(false)
+		, m_folder()
+		, m_nameChangedPackages()
 	{
 		setCurrentFolder(u8"/Engine/Content/Editor");
-		AssetManager::getInstance().AssetRegistered.bindObject(this, &ContentWidget::onAssetRegistered);
-		AssetManager::getInstance().AssetUnregistered.bindObject(this, &ContentWidget::onAssetUnregistered);
+
+		gAssetTool.AssetCreated.bindObject(this, &ContentWidget::onAssetCreated);
+		gAssetTool.AssetDirtyStateChanged.bindObject(this, &ContentWidget::onAssetDirty);
+		AssetManager::getInstance().AssetLoaded.bindObject(this, &ContentWidget::onAssetLoaded);
 	}
 
 	ContentWidget::~ContentWidget()
 	{
-		AssetManager::getInstance().AssetRegistered.unbind(this);
-		AssetManager::getInstance().AssetUnregistered.unbind(this);
+		gAssetTool.AssetCreated.unbind(this);
+		gAssetTool.AssetDirtyStateChanged.unbind(this);
+		AssetManager::getInstance().AssetLoaded.unbind(this);
 	}
 
 	void ContentWidget::setCurrentFolder(const std::string& folder)
 	{
 		m_folder = folder;
-		m_controlItem = nullptr;
 
-		const Icon folderIcon = { { 0, 0 }, { 128,128 } };
 		m_items.clear();
 		{
 			auto parentNode = gFileSystem.parentNode(folder);
 			if (!parentNode.path.empty())
 			{
-				auto item = createFolderItem(parentNode.path, "..");
+				auto item = createFolderItem(parentNode.path);
+				item->setDisplayName("..");
 				item->setSelectable(false);
 				m_items.emplace_back(std::move(item));
 			}
@@ -99,12 +86,35 @@ namespace volucris
 			m_items.emplace_back(createFolderItem(node.path));
 		}
 
-		const auto& assets = AssetManager::getInstance().getAssetsInDirectory(folder);
+		const auto& assetInfos = gAssetTool.getAssetsInfoInFolder(m_folder);
 
-		for (const auto& assetData : assets)
+		for (const auto& assetInfo : assetInfos)
 		{
-			addAssetItem(assetData);
+			if (auto item = createAssetItem(assetInfo))
+			{
+				m_items.push_back(std::move(item));
+			}
 		}
+		m_folderDirty = false;
+	}
+
+	void ContentWidget::setSelectedItem(ContentItemWidget* item)
+	{
+		if (!m_multiSelect)
+		{
+			for (auto& it : m_items)
+			{
+				if (it.get() != item)
+				{
+					it->setSelected(false);
+				}
+			}
+		}
+	}
+
+	void ContentWidget::addNameChangedPackageName(const std::shared_ptr<Package>& package, const std::string& newPackageName)
+	{
+		m_nameChangedPackages.push_back({ package, newPackageName });
 	}
 
 	void ContentWidget::onBuild(bool init)
@@ -169,13 +179,9 @@ namespace volucris
 
 		ImGui::End();
 
-		if (m_controlItem)
+		if (m_folderDirty)
 		{
-			auto node = m_controlItem->getFileNode();
-			if (node.type == EFileType::Directory)
-			{
-				setCurrentFolder(node.path);
-			}
+			setCurrentFolder(m_folder);
 		}
 
 		if (refreshFolder)
@@ -201,7 +207,7 @@ namespace volucris
 			{
 				if (item->isSelected())
 				{
-					deleteItem(item.get());
+					//deleteItem(item.get());
 				}
 				else
 				{
@@ -209,6 +215,16 @@ namespace volucris
 				}
 			}
 			m_items = std::move(items);
+		}
+
+		if (!m_nameChangedPackages.empty())
+		{
+			for (const auto& [package, newPackageName] : m_nameChangedPackages)
+			{
+				gAssetTool.renamePackage(package, newPackageName);
+			}
+			m_nameChangedPackages.clear();
+			setCurrentFolder(m_folder);
 		}
 	}
 
@@ -218,7 +234,8 @@ namespace volucris
 		auto iconTexture = window->getEditorIconTexture();
 		for (const auto& item : m_items)
 		{
-			item->setTexture(iconTexture);
+			item->getItemContext()->getThumbnail().texture = iconTexture;
+			item->getItemContext()->getThumbnail().update();
 		}
 	}
 
@@ -226,7 +243,7 @@ namespace volucris
 	{
 		for (const auto& item : m_items)
 		{
-			item->setTexture(nullptr);
+			item->getItemContext()->getThumbnail().texture = nullptr;
 		}
 	}
 
@@ -247,7 +264,7 @@ namespace volucris
 				if (loader.load())
 				{
 					const auto name = path.stem().generic_u8string();
-					const auto packageName = getDefaultPackageName(cpath, name);
+					const auto packageName = AssetTool::getDefaultPackageName(m_folder, name);
 					auto package = std::make_shared<Package>(packageName);
 					auto texture = std::make_shared<Texture2D>(loader.getTextureData());
 					package->setObject(texture);
@@ -267,7 +284,7 @@ namespace volucris
 					const auto& resources = loader.getMeshes();
 					for (const auto& res : resources)
 					{
-						const auto packageName = getDefaultPackageName(cpath, res.name);
+						const auto packageName = AssetTool::getDefaultPackageName(m_folder, res.name);
 						auto package = std::make_shared<Package>(packageName);
 						package->setObject(res.mesh);
 						if (AssetManager::getInstance().registry(package.get()))
@@ -322,7 +339,7 @@ namespace volucris
 			if (loader.load())
 			{
 				auto mat = loader.getMaterial();
-				const auto packageName = getDefaultPackageName(cpath, loader.getAssetName());
+				const auto packageName = AssetTool::getDefaultPackageName(m_folder, loader.getAssetName());
 				auto package = std::make_shared<Package>(packageName);
 				package->setObject(mat);
 				if (AssetManager::getInstance().registry(package.get()))
@@ -334,184 +351,174 @@ namespace volucris
 		return true;
 	}
 
-	void ContentWidget::onAssetRegistered(const AssetData& assetData)
+	void ContentWidget::onAssetCreated(const AssetInfo& assetInfo)
 	{
-		if (assetData.path.find(m_folder) != 0)
+		AssetPath path = AssetPath(assetInfo.data.path);
+		if (path.path != m_folder)
 		{
-			return; // 只处理当前目录下的资源
+			return;
 		}
-		addAssetItem(assetData);
+		if (auto item = createAssetItem(assetInfo))
+		{
+			item->setDisplayName(path.name);
+			item->setEditing(true);
+			auto proxy = item.get();
+			m_items.push_back(std::move(item));
+			m_multiSelect = false;
+			setSelectedItem(proxy);
+		}
 	}
 
-	void ContentWidget::onAssetUnregistered(const AssetData& assetData)
+	void ContentWidget::onAssetDirty(const AssetInfo& assetInfo)
 	{
-		if (assetData.path.find(m_folder) != 0)
+		AssetPath path = AssetPath(assetInfo.data.path);
+		if (path.path != m_folder)
 		{
-			return; // 只处理当前目录下的资源
+			return;
 		}
-		auto it = std::remove_if(m_items.begin(), m_items.end(),
-			[&assetData](const std::unique_ptr<ContentItemWidget>& item) {
-				return item->getAssetData().path == assetData.path;
-			});
-		m_items.erase(it, m_items.end());
+
+		for (auto& item : m_items)
+		{
+			if (item->getItemContext()->getAssetName() == path.name)
+			{
+				item->getItemContext()->setDirty(assetInfo.dirty);
+				item->setDisplayName(item->getItemContext()->getDisplayName());
+				return;
+			}
+		}
 	}
 
-	std::unique_ptr<ContentItemWidget> ContentWidget::createItem(const FileNode& node, const Icon& icon, const std::string& name)
+	void ContentWidget::onAssetLoaded(Package* package)
 	{
-		RHITexture2D* iconTexture = nullptr;
+		AssetPath path = AssetPath(package->getAssetData().path);
+		if (path.path != m_folder)
+		{
+			return;
+		}
+
+		for (auto& item : m_items)
+		{
+			if (item->getItemContext()->getAssetName() == path.name)
+			{
+				if (auto assetContext = dynamic_cast<AssetContext*>(item->getItemContext()))
+				{
+					auto assetInfo = assetContext->getAssetInfo();
+					assetInfo.object = package->getAssetObject();
+					assetContext->setAssetInfo(assetInfo);
+				}
+				item->setTextColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+				return;
+			}
+		}
+	}
+
+	std::unique_ptr<ContentItemWidget> ContentWidget::createFolderItem(const std::string& fullpath)
+	{
+		std::shared_ptr<RHITexture2D> iconTexture = nullptr;
 		if (auto window = dynamic_cast<EditorWindow*>(getTopWidget()))
 		{
 			iconTexture = window->getEditorIconTexture();
 		}
 
-		auto item = std::make_unique<ContentItemWidget>(node);
-		item->setIcon(icon.pos, icon.size);
-		item->setScale(m_scale);
-		item->setTexture(iconTexture);
-		if (!name.empty())
-		{
-			item->setDisplayName(name);
-		}
-
-		item->Clicked.bind([this](ContentItemWidget* clicked) {
-			if (!m_multiSelect)
-			{
-				for (auto& item : m_items)
-				{
-					if (item.get() != clicked)
-					{
-						item->setSelected(false);
-					}
-				}
-			}
-			});
-
-		item->DoubleClicked.bind([this](ContentItemWidget* clicked) {
-			m_controlItem = clicked;
-			((EditorApplication*)gApp)->openEditor(m_controlItem->getAssetData());
-			});
-
-		item->NodeNameChanged.bind([this](ContentItemWidget* item, const FileNode& node) {
-			if (node.type == EFileType::Directory)
-			{
-				if (gFileSystem.directoryExists(item->getFileNode().path))
-				{
-					gFileSystem.renameDirectory(item->getFileNode().path, node.path);
-				}
-				else
-				{
-					gFileSystem.createDirectory(node.path);
-				}
-				item->setFileNode(node);
-			}
-			else
-			{
-				
-			}
-			});
-		item->ReloadMaterial.bind([this](SoftObject<MaterialTemplate> material) {
-			if (!material.tryLoad())
-			{
-				V_LOG_ERROR(Editor, "Failed to reload material: {}", material.object()->getDisplayName());
-				return;
-			}
-
-			const auto vsp = material->getVertexSourcePath();
-			const auto fsp = material->getFragmentSourcePath();
-
-			const auto vss = MaterialLoader::getSource(vsp);
-			const auto fss = MaterialLoader::getSource(fsp);
-
-			material->setMaterialSource(vss, fss);
-
-			auto package = std::make_shared<Package>(material.getPath());
-			package->setObject(material.object());
-			gAssetTool.addDirtyAsset(material.getPath(), material.object());
-			});
-		item->CreateInstance.bind([this](SoftObject<MaterialTemplate> material) {
-			if (!material.tryLoad())
-			{
-				V_LOG_ERROR(Editor, "Failed to reload material: {}", material.object()->getDisplayName());
-				return;
-			}
-
-			auto matInstance = std::make_shared<MaterialInstance>();
-			matInstance->setMaterial(material);
-			matInstance->setDisplayName(fmt::format("{}_Inst", material.object()->getDisplayName()));
-			auto packageName = getDefaultPackageName(fs::path(m_folder), matInstance->getDisplayName());
-			auto package = std::make_shared<Package>(packageName);
-			package->setObject(matInstance);
-			if (AssetManager::getInstance().registry(package.get()))
-			{
-				gAssetTool.addDirtyAsset(packageName, matInstance);
-			}
-			else
-			{
-				V_LOG_ERROR(Editor, "Failed to create material instance: {}", matInstance->getDisplayName());
-			}});
+		Thumbnail folderThumbnail;
+		folderThumbnail.texture = iconTexture;
+		folderThumbnail.pos = { 0, 0 };
+		folderThumbnail.size = { 128, 128 };
+		folderThumbnail.update();
+		auto item = std::make_unique<ContentItemWidget>();
+		auto context = std::make_unique<FolderContext>(this, item.get());
+		context->setAssetPath(fullpath);
+		context->setThumbnail(folderThumbnail);
+		item->setContext(std::move(context));
 		return item;
 	}
 
-	std::unique_ptr<ContentItemWidget> ContentWidget::createFolderItem(const std::string& path, const std::string& name)
+	std::unique_ptr<ContentItemWidget> ContentWidget::createAssetItem(const AssetInfo& assetInfo)
 	{
-		FileNode node;
-		node.path = path;
-		node.type = EFileType::Directory;
-		Icon icon = { {0,0}, {128,128} };
-		return createItem(node, icon, name);
-	}
+		Thumbnail thumbnail;
+		thumbnail.size = { 128, 128 };
 
-	std::unique_ptr<ContentItemWidget> ContentWidget::createStaticMeshItem(const std::string& path)
-	{
-		FileNode node;
-		node.path = path;
-		node.type = EFileType::Asset;
-		Icon icon = { {2,0}, {128,128} };
-		return createItem(node, icon);
-	}
+		std::unique_ptr<ContentItemWidget>  item = nullptr;
 
-	void ContentWidget::addAssetItem(const AssetData& assetData)
-	{
-		std::unique_ptr<ContentItemWidget> item = nullptr;
-		if (assetData.className == "Texture2D")
+		if (assetInfo.data.className == "Material")
 		{
-			item = createTextureItem(assetData.path);
+			thumbnail.pos = { 1, 0 };
+			item = createMaterialItem(assetInfo);
 		}
-		else if (assetData.className == "StaticMesh")
+		else if (assetInfo.data.className == "MaterialInstance")
 		{
-			item = createStaticMeshItem(assetData.path);
+			thumbnail.pos = { 1, 0 };
+			item = createMaterialInstanceItem(assetInfo);
 		}
-		else if (assetData.className == "Material" || assetData.className == "MaterialInstance")
+		else if (assetInfo.data.className == "Texture2D")
 		{
-			item = createTextureItem(assetData.path);
+			thumbnail.pos = { 1, 0 };
+			item = createTexture2DItem(assetInfo);
 		}
-
-		if (item)
+		else if (assetInfo.data.className == "StaticMesh")
 		{
-			item->setAssetData(assetData);
-			m_items.emplace_back(std::move(item));
-		}
-	}
-
-	void ContentWidget::deleteItem(ContentItemWidget* item)
-	{
-		if (item->getFileNode().type == EFileType::Directory)
-		{
-			gFileSystem.deleteDirectory(item->getFileNode().path);
+			thumbnail.pos = { 2, 0 };
+			item = createStaticMeshItem(assetInfo);
 		}
 		else
 		{
-			AssetManager::getInstance().unregister(item->getFileNode().path);
-			gFileSystem.deleteAsset(item->getFileNode().path);
+			return nullptr;
 		}
+
+		std::shared_ptr<RHITexture2D> iconTexture = nullptr;
+		if (auto window = dynamic_cast<EditorWindow*>(getTopWidget()))
+		{
+			iconTexture = window->getEditorIconTexture();
+		}
+		thumbnail.texture = iconTexture;
+		thumbnail.update();
+		item->getItemContext()->getThumbnail() = thumbnail;
+
+		if (assetInfo.object)
+		{
+			item->setTextColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+		}
+		else
+		{
+			item->setTextColor(glm::vec4(.6f, .6f, .6f, 1.0f));
+		}
+
+		return item;
 	}
 
-	std::unique_ptr<ContentItemWidget> ContentWidget::createTextureItem(const std::string& path)
+	std::unique_ptr<ContentItemWidget> ContentWidget::createMaterialItem(const AssetInfo& info)
 	{
-		FileNode node;
-		node.path = path;
-		node.type = EFileType::Asset;
-		Icon icon = { {1,0}, {128,128} };
-		return createItem(node, icon);
+		auto item = std::make_unique<ContentItemWidget>();
+		auto context = std::make_unique<MaterialContext>(this, item.get());
+		context->setAssetInfo(info);
+		item->setContext(std::move(context));
+		return item;
+	}
+
+	std::unique_ptr<ContentItemWidget> ContentWidget::createMaterialInstanceItem(const AssetInfo& info)
+	{
+		auto item = std::make_unique<ContentItemWidget>();
+		auto context = std::make_unique<MaterialInstanceContext>(this, item.get());
+		context->setAssetInfo(info);
+		item->setContext(std::move(context));
+		return item;
+	}
+
+	std::unique_ptr<ContentItemWidget> ContentWidget::createTexture2DItem(const AssetInfo& assetInfo)
+	{
+		auto item = std::make_unique<ContentItemWidget>();
+		auto context = std::make_unique<Texture2DContext>(this, item.get());
+		context->setAssetInfo(assetInfo);
+		item->setContext(std::move(context));
+		return item;
+	}
+
+	std::unique_ptr<ContentItemWidget> ContentWidget::createStaticMeshItem(const AssetInfo& assetInfo)
+	{
+		auto item = std::make_unique<ContentItemWidget>();
+		auto context = std::make_unique<AssetContext>(this, item.get());
+		context->setAssetInfo(assetInfo);
+		item->setContext(std::move(context));
+		return item;
 	}
 }
