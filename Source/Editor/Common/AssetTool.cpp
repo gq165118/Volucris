@@ -6,17 +6,19 @@
 #include <Engine/Render/MaterialParameterInfo.h>
 #include <Engine/Game/MaterialInstance.h>
 #include "AssetObjectHelper.h"
+#include <Engine/FileSystem/FileSystem.h>
+#include <filesystem>
+
+namespace fs = std::filesystem;
 
 namespace volucris
 {
-	static std::vector<std::string> dependenceCheck(GameObject* object)
-	{
-		
-	}
-
 	AssetTool::AssetTool()
 		: m_dirtyAssets()
 	{
+		AssetManager::getInstance().AssetRegistered.bindObject(this, &AssetTool::onAssetRegistered);
+		AssetManager::getInstance().AssetUnregistered.bindObject(this, &AssetTool::onAssetUnregistered);
+		AssetManager::getInstance().AssetLoaded.bindObject(this, &AssetTool::onAssetLoaded);
 	}
 
 	bool AssetTool::save(const std::shared_ptr<Package>& package)
@@ -32,24 +34,10 @@ namespace volucris
 			return false;
 		}
 
-		if (auto helper = AssetObjectHelper::getAssetHelper(package->getAssetObject()))
+		if (AssetManager::getInstance().save(package))
 		{
-			auto assetData = package->getAssetData();
-			assetData.dependencies = helper->getDependences();
-			package->setAssetData(assetData);
-		}
-
-		AssetWriter writer = AssetWriter(std::shared_ptr<Package>(package));
-		
-		if (writer.write())
-		{
-			V_LOG_INFO(Editor, "AssetTool::save: Package saved successfully: {}", package->getAssetData().path);
 			removeDirtyAsset(package->getAssetData().path);
 			return true;
-		}
-		else
-		{
-			V_LOG_ERROR(Editor, "AssetTool::save: Failed to save package: {}", package->getAssetData().path);
 		}
 		return false;
 	}
@@ -69,6 +57,11 @@ namespace volucris
 		}
 
 		m_dirtyAssets[packageName] = object;
+		AssetInfo info;
+		info.data = AssetManager::getInstance().getAssetData(packageName);
+		info.object = object;
+		info.dirty = true;
+		AssetDirtyStateChanged.invoke(info);
 	}
 
 	void AssetTool::renamePackage(const std::shared_ptr<Package>& package, const std::string& newPackageName)
@@ -82,32 +75,118 @@ namespace volucris
 			return;
 		}
 
-		m_dirtyAssets.erase(package->getAssetData().path);
-
 		inst.unregister(package->getAssetData().path);
 		
+		package->getAssetObject()->setPathName(newPackageName);
 		assetData.path = newPackageName;
 		package->setAssetData(assetData);
 		inst.registry(package.get());
-
-		m_dirtyAssets[newPackageName] = package->getAssetObject();
 
 		const auto packageNames = inst.getReferenceAssets(package->getAssetData().path);
 		for (const auto& packageName : packageNames)
 		{
 			if (auto object = inst.load(packageName))
 			{
-				auto helper = AssetObjectHelper::getAssetHelper(object);
-				if (helper->updateDependences({ { package->getAssetData().path, newPackageName } }))
-				{
-					m_dirtyAssets[packageName] = object;
-				}
+				object->replaceDependency(assetData.path, newPackageName);
 			}
 		}
 	}
 
+	std::vector<AssetInfo> AssetTool::getAssetsInfoInFolder(const std::string& folder, bool recursion) const
+	{
+		std::vector<AssetInfo> infos;
+		const auto assetDatas = AssetManager::getInstance().getAssetsInDirectory(folder, recursion);
+		for (const auto& assetData : assetDatas)
+		{
+			AssetInfo info;
+			info.data = assetData;
+			info.object = AssetManager::getInstance().tryLoad(assetData.path);
+			info.dirty = m_dirtyAssets.find(assetData.path) != m_dirtyAssets.end();
+			infos.push_back(info);
+		}
+		return infos;
+	}
+
+	std::string AssetTool::getDefaultPackageName(const std::string& folderPath, const std::string& name)
+	{
+		fs::path dirpath(folderPath);
+		std::string packageName = (dirpath / name).generic_u8string();
+		std::string assetName = fmt::format("{}.asset", packageName);
+		if (gFileSystem.fileExists(assetName) || AssetManager::getInstance().isPackageRegistered(packageName))
+		{
+			for (size_t i = 1; i < std::numeric_limits<size_t>::max(); ++i)
+			{
+				packageName = (dirpath / fmt::format("{}{}", name, i)).generic_u8string();
+				assetName = fmt::format("{}.asset", packageName);
+				if (!gFileSystem.fileExists(assetName) && !AssetManager::getInstance().isPackageRegistered(packageName))
+				{
+					break;
+				}
+			}
+		}
+		return packageName;
+	}
+
 	void AssetTool::removeDirtyAsset(const std::string& packageName)
 	{
+		auto it = m_dirtyAssets.find(packageName);
+		if (it == m_dirtyAssets.end())
+		{
+			return;
+		}
+		AssetInfo info;
+		info.data = AssetManager::getInstance().getAssetData(packageName);
+		info.object = it->second;
+		info.dirty = false;
+		m_dirtyAssets.erase(it);
+		AssetDirtyStateChanged.invoke(info);
+	}
+
+	void AssetTool::onAssetLoaded(Package* package)
+	{
+		package->getAssetObject()->DirtyStateChanged.bindObject(this, &AssetTool::onAssetDirtyStateChanged);
+	}
+
+	void AssetTool::onAssetRegistered(Package* package)
+	{
+		const auto& packageName = package->getAssetData().path;
+		if (m_dirtyAssets.find(packageName) != m_dirtyAssets.end())
+		{
+			V_LOG_WARN(Editor, "AssetTool: Package {} is already registered as dirty.", packageName);
+			return;
+		}
+		AssetInfo info;
+		info.data = package->getAssetData();
+		info.dirty = true;
+		info.object = package->getAssetObject();
+		m_dirtyAssets.insert({ packageName, package->getAssetObject() });
+		AssetCreated.invoke(info);
+	}
+
+	void AssetTool::onAssetUnregistered(const std::string& packageName)
+	{
+		auto& inst = AssetManager::getInstance();
+		const auto packageNames = inst.getReferenceAssets(packageName);
+		for (const auto& packageName : packageNames)
+		{
+			if (auto object = inst.load(packageName))
+			{
+				auto helper = AssetObjectHelper::getAssetHelper(object);
+				if (helper->updateDependences({ { packageName, ""}}))
+				{
+					addDirtyAsset(packageName, object);
+				}
+			}
+		}
 		m_dirtyAssets.erase(packageName);
+
+		gFileSystem.deleteAsset(packageName);
+
+		AssetDeleted.invoke(packageName);
+	}
+
+	void AssetTool::onAssetDirtyStateChanged(GameObject* object)
+	{
+		addDirtyAsset(object->getPathName().fullpath, object->getShared<GameObject>());
 	}
 }

@@ -32,6 +32,7 @@ namespace volucris
 			onTransformStateChanged();
 		}
 		m_dirtyFlags = 0;
+		markDirty(false);
 	}
 
 	std::shared_ptr<PrimitiveSceneProxy> Component::getPrimitiveSceneProxy() const

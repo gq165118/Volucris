@@ -7,13 +7,8 @@
 
 namespace volucris
 {
-	DECLARE_EVENT_DELEGATE(PackageEvent, void, AssetData)
-
 	class AssetItemWidget : public Widget
 	{
-	public:
-		PackageEvent SelectedChanged;
-
 	public:
 		AssetItemWidget(const std::string& name);
 

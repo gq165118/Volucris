@@ -187,6 +187,7 @@ namespace volucris
 		template <class Archive>
 		void serialize(Archive& ar, const unsigned int version)
 		{
+			ar& m_id;
 			ar& m_name;
 			ar& m_value;
 		}
@@ -201,6 +202,11 @@ namespace volucris
 			return MaterialParameterHelper::getParameterUpdateInfo(m_id, m_value);
 		}
 
+		template <typename T= SoftObject<Texture2D>>
+		void load()
+		{
+			m_value.tryLoad();
+		}
 	};
 
 	using MaterialFloatParameter = MaterialParameterTemplate<float>;

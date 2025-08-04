@@ -49,7 +49,7 @@ namespace volucris
 		package->setAssetData(assetData);
 		m_assets[packageName] = object;
 		m_assetDatas[packageName] = assetData;
-		AssetRegistered.invoke(assetData);
+		AssetRegistered.invoke(package);
 
 		return true;
 	}
@@ -64,7 +64,7 @@ namespace volucris
 		auto assetData = it->second;
 		m_assetDatas.erase(it);
 		m_assets.erase(packageName);
-		AssetUnregistered.invoke(assetData);
+		AssetUnregistered.invoke(packageName);
 	}
 
 	std::shared_ptr<GameObject> AssetManager::load(const std::string& packageName, World* world)
@@ -85,6 +85,7 @@ namespace volucris
 			{
 				object = package->getAssetObject();
 				m_assets[packageName] = object;
+				AssetLoaded.invoke(package.get());
 			}
 			else
 			{
@@ -100,8 +101,46 @@ namespace volucris
 		return object;
 	}
 
-	AssetData AssetManager::loadAssetData(const std::string& packageName) const
+	void AssetManager::updateAssetDependence(GameObject* object)
 	{
+		if (!isPackageRegistered(object->getPathName().fullpath))
+		{
+			return;
+		}
+		m_assetDatas[object->getPathName().fullpath].dependencies = object->collectDependencies();
+	}
+
+	bool AssetManager::save(const std::shared_ptr<Package>& package)
+	{
+		if (!isPackageRegistered(package->getAssetData().path))
+		{
+			V_LOG_WARN(Engine, "Failed to save package : {}, package not registered", package->getAssetData().path);
+			return false;
+		}
+		package->updateDependecies();
+
+		AssetWriter writer = AssetWriter(package);
+
+		if (writer.write())
+		{
+			m_assetDatas[package->getAssetData().path] = package->getAssetData();
+			V_LOG_INFO(Engine, "Package saved successfully: {}", package->getAssetData().path);
+			return true;
+		}
+		else
+		{
+			V_LOG_ERROR(Engine, "AssetTool::save: Failed to save package: {}", package->getAssetData().path);
+		}
+		return false;
+	}
+
+	AssetData AssetManager::getAssetData(const std::string& packageName) const
+	{
+		auto it = m_assetDatas.find(packageName);
+		if (it != m_assetDatas.end())
+		{
+			return it->second;
+		}
 		AssetReader reader = AssetReader(packageName);
 		return reader.readAssetData();
 	}
@@ -132,7 +171,7 @@ namespace volucris
 		{
 			if (node.type == EFileType::Asset)
 			{
-				const auto assetData = loadAssetData(node.path);
+				const auto assetData = getAssetData(node.path);
 				if (!assetData.className.empty())
 				{
 					m_assetDatas[node.path] = assetData;
@@ -159,17 +198,17 @@ namespace volucris
 		return referenceAssets;
 	}
 
-	std::vector<AssetData> AssetManager::getAssetsInDirectory(const std::string& directory, bool currentOnly) const
+	std::vector<AssetData> AssetManager::getAssetsInDirectory(const std::string& directory, bool recursion) const
 	{
 		std::vector<AssetData> assets;
 		for (const auto& [path, assetData] : m_assetDatas)
 		{
 			if (assetData.path.find(directory) == 0)
 			{
-				if (currentOnly)
+				if (!recursion)
 				{
 					AssetPath path(assetData.path);
-					if (path.packagePath != directory)
+					if (path.path != directory)
 					{
 						continue; // 只获取当前目录下的资源
 					}

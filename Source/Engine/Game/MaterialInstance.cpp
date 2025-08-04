@@ -16,7 +16,6 @@ namespace volucris
 		, m_floatParameters()
 		, m_vec4Parameters()
 		, m_proxy()
-		, m_dirty(false)
 		, m_material()
 	{
 	}
@@ -99,7 +98,8 @@ namespace volucris
 				}
 			}
 		}
-		m_dirty = true;
+		
+		markDirty(true);
 		
 		if (auto proxy = tryGetMaterialProxy())
 		{
@@ -107,6 +107,15 @@ namespace volucris
 				proxy->setMaterial(baseProxy);
 				});
 		}
+	}
+
+	Material* MaterialInstance::getBaseMaterial()
+	{
+		if (auto inst = dynamic_cast<MaterialInstance*>(m_material.get()))
+		{
+			return inst->getBaseMaterial();
+		}
+		return m_material.get();
 	}
 
 	std::vector<MaterialParameter> MaterialInstance::getInstanceParameters() const
@@ -158,6 +167,24 @@ namespace volucris
 			return { proxy, getUpdateParameterInfos() };
 		}
 		return {};
+	}
+
+	std::vector<std::string> MaterialInstance::collectDependencies() const
+	{
+		std::set<std::string> dependecies;
+		if (m_material)
+		{
+			dependecies.insert(m_material.getPath());
+
+			for (const auto & parameter : m_texture2dParameters)
+			{
+				if (parameter.getValue().isValid())
+				{
+					dependecies.insert(parameter.getValue().getPath());
+				}
+			}
+		}
+		return std::vector<std::string>(dependecies.begin(), dependecies.end());
 	}
 
 	std::vector<MaterialParameterUpdateInfo> MaterialInstance::getUpdateParameterInfos()
@@ -239,7 +266,7 @@ namespace volucris
 			return nullptr;
 		}
 
-		auto base = m_material->getBaseProxy();
+		auto base = m_material->getBaseMaterial()->getBaseProxy();
 		auto proxy = std::make_shared<MaterialInstanceProxy>();
 		auto updateParameters = getAllUpdateParameterInfos();
 
@@ -259,7 +286,7 @@ namespace volucris
 			if (param.getName() == name)
 			{
 				param.setValue(value);
-				m_dirty = true;
+				markDirty(true);
 				return true;
 			}
 		}
@@ -288,7 +315,7 @@ namespace volucris
 			if (param.getName() == name)
 			{
 				param.setValue(value);
-				m_dirty = true;
+				markDirty(true);
 				return true;
 			}
 		}
@@ -307,7 +334,7 @@ namespace volucris
 					V_LOG_WARN(Engine, "Failed to load texture for material instance parameter: " + name);
 				}
 				param.setValue(texture);
-				m_dirty = true;
+				markDirty(true);
 				return true;
 			}
 		}

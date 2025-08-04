@@ -5,6 +5,8 @@
 #include <glm/glm.hpp>
 #include <Engine/FileSystem/FileSystem.h>
 #include <Engine/Asset/AssetData.h>
+#include <Common/Thumbnail.h>
+#include <Common/AssetTool.h>
 
 namespace volucris
 {
@@ -21,6 +23,18 @@ namespace volucris
 
 		void setCurrentFolder(const std::string& folder);
 
+		void setSelectedItem(ContentItemWidget* item);
+
+		void dirtyCurrentFolder(const std::string& folder)
+		{
+			m_folder = folder;
+			m_folderDirty = true;
+		}
+
+		const std::string& getCurrentFolder() const { return m_folder; }
+
+		void addNameChangedPackageName(const std::shared_ptr<Package>& package, const std::string& newPackageName);
+
 	protected:
 		void onBuild(bool init) override;
 
@@ -30,37 +44,35 @@ namespace volucris
 
 		bool onDrop(DropEvent* event) override;
 
-		void onAssetRegistered(const AssetData& assetData);
+		void onAssetCreated(const AssetInfo& assetInfo);
 
-		void onAssetUnregistered(const AssetData& assetData);
+		void onAssetDirty(const AssetInfo& assetInfo);
+
+		void onAssetLoaded(Package* package);
+
+		void onAssetUnregistered(const std::string& packageName);
 
 	private:
-		struct Icon
-		{
-			Point pos;
-			Size size;
-		};
+		std::unique_ptr<ContentItemWidget> createFolderItem(const std::string& fullpath);
 
-		std::unique_ptr<ContentItemWidget> createItem(const FileNode& node, const Icon& icon, const std::string& name = "");
+		std::unique_ptr<ContentItemWidget> createAssetItem(const AssetInfo& assetInfo);
 
-		std::unique_ptr<ContentItemWidget> createFolderItem(const std::string& path, const std::string& name = "");
+		std::unique_ptr<ContentItemWidget> createMaterialItem(const AssetInfo& assetInfo);
 
-		std::unique_ptr<ContentItemWidget> createTextureItem(const std::string& path);
+		std::unique_ptr<ContentItemWidget> createMaterialInstanceItem(const AssetInfo& assetInfo);
 
-		std::unique_ptr<ContentItemWidget> createStaticMeshItem(const std::string& path);
+		std::unique_ptr<ContentItemWidget> createTexture2DItem(const AssetInfo& assetInfo);
 
-		void addAssetItem(const AssetData& assetData);
-
-		void deleteItem(ContentItemWidget* item);
+		std::unique_ptr<ContentItemWidget> createStaticMeshItem(const AssetInfo& assetInfo);
 
 	private:
 		float m_scale;
 		glm::vec2 m_itemSize;
 		std::vector<std::unique_ptr<ContentItemWidget>> m_items;
 		bool m_multiSelect;
+		bool m_folderDirty;
 		std::string m_folder;
-		ContentItemWidget* m_controlItem;
-		RHITexture2D*  m_iconTexture;
+		std::vector<std::pair<std::shared_ptr<Package>, std::string>> m_nameChangedPackages;
 	};
 }
 

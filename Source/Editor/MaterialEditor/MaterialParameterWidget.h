@@ -3,6 +3,7 @@
 
 #include <Engine/Application/Widget.h>
 #include <unordered_map>
+#include <Engine/Game/MaterialInstance.h>
 #include <Engine/Game/MaterialParameter.h>
 #include "GLSLParser.h"
 
@@ -16,7 +17,7 @@ namespace volucris
 	public:
 		MaterialParameterWidget();
 
-		void setMaterial(const std::shared_ptr<MaterialInstance>& material);
+		void setMaterial(const SoftObject<MaterialInstance>& material);
 
 		void onBuild(bool) override;
 
@@ -28,10 +29,8 @@ namespace volucris
 			UniformProperty property;
 		};
 
-		std::vector<AssetData> m_textureAssets;
-		std::shared_ptr<MaterialInstance> m_material;
+		SoftObject<MaterialInstance> m_material;
 		std::unordered_map<std::string, std::vector<Parameter>> m_parameters;
-		bool m_init;
 	};
 }
 
