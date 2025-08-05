@@ -65,6 +65,7 @@ namespace volucris
 	void ContentItemWidget::setContext(std::unique_ptr<ItemContext> asset)
 	{
 		m_asset = std::move(asset);
+		m_asset->buildMenuCountextGroup();
 		setDisplayName(m_asset->getDisplayName());
 	}
 
@@ -184,11 +185,6 @@ namespace volucris
 		else
 		{
 			DrawTextCenteredInRect(fontRectMin, fontRectMax, m_fontSize, m_text, { m_textColor.r, m_textColor.g, m_textColor.b, m_textColor.a});
-		}
-
-		if (m_asset->shouldExecuteCommmand())
-		{
-			m_asset->execute();
 		}
 	}
 

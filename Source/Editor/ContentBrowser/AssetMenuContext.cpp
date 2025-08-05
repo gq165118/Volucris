@@ -1,6 +1,7 @@
 #include "AssetMenuContext.h"
 #include "ContentWidget.h"
 #include <imgui_internal.h>
+#include <Engine/Game/Package.h>
 
 namespace volucris
 {
@@ -91,7 +92,6 @@ namespace volucris
 	void AssetContext::buildMenuCountextGroup()
 	{
 		MenuContextGroup group;
-		if (isDirty())
 		{
 			MenuContextItem item;
 			item.name = "Save";

@@ -7,6 +7,7 @@
 #include <EditorEntry/EditorWindow.h>
 #include <MaterialEditor/MaterialEditorWidget.h>
 #include <Engine/Application/Application.h>
+#include <Engine/Game/Package.h>
 
 namespace volucris
 {
@@ -96,6 +97,10 @@ namespace volucris
 
 	void SaveAssetCommand::execute()
 	{
+		if (!m_context->isDirty())
+		{
+			return;
+		}
 		auto object = m_context->getAssetInfo().object;
 		auto package = std::make_shared<Package>(m_context->getAssetInfo().data.path);
 		package->setAssetData(m_context->getAssetInfo().data);

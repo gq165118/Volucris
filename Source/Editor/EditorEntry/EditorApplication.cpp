@@ -9,6 +9,9 @@
 #include <MaterialEditor/MaterialTemplate.h>
 #include <Engine/Game/MaterialInstance.h>
 
+#include <boost/archive/detail/archive_serializer_map.hpp>
+#include <Engine/Game/DependentCollector.h>
+
 namespace volucris
 {
 	EditorWorld::EditorWorld()
@@ -53,6 +56,8 @@ namespace volucris
 		return false;
 	}
 }
+
+extern template class boost::archive::detail::archive_serializer_map<volucris::DependentCollectorArchive>;
 
 using namespace volucris;
 

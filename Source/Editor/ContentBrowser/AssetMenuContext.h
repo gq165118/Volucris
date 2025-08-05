@@ -61,8 +61,6 @@ namespace volucris
 		{
 			m_dirty = dirty;
 			updateDisplayName();
-			clearMenuContextGroups();
-			buildMenuCountextGroup();
 		}
 
 		virtual void clicked();
@@ -122,6 +120,8 @@ namespace volucris
 
 		void execute();
 
+		virtual void buildMenuCountextGroup() {}
+
 	protected:
 		MenuContextGroup* getMenuContextGroup(size_t index)
 		{
@@ -142,8 +142,6 @@ namespace volucris
 		{
 			m_displayName = m_dirty ? fmt::format("*{}", m_assetPath.name) : m_assetPath.name;
 		}
-
-		virtual void buildMenuCountextGroup() {}
 
 	private:
 		bool m_dirty;
@@ -187,8 +185,6 @@ namespace volucris
 			m_assetInfo = info;
 			setAssetPath(m_assetInfo.data.path);
 			setDirty(m_assetInfo.dirty);
-			clearMenuContextGroups();
-			buildMenuCountextGroup();
 		}
 
 		const AssetInfo& getAssetInfo() const

@@ -11,10 +11,10 @@
 #include <Engine/Asset/AssetData.h>
 #include <Engine/Game/SoftObject.h>
 #include <MaterialEditor/MaterialTemplate.h>
+#include <ContentBrowser/AssetMenuContext.h>
 
 namespace volucris
 {
-	class ItemContext;
 	class ContentItemWidget;
 
 	class ContentItemWidget
@@ -51,6 +51,10 @@ namespace volucris
 		void setTextColor(const glm::vec4& color) { m_textColor = color; }
 
 		ItemContext* getItemContext() const;
+
+		bool shouldExecuteCommmand() const { return m_asset->shouldExecuteCommmand(); }
+
+		void executeMenuCommand() { m_asset->execute(); }
 
 	private:
 		glm::vec2 m_size;

@@ -10,65 +10,22 @@ namespace volucris
 
 	template <typename T, typename=void>
 	class SoftObject;
-
-	class DependentObject
-	{
-	public:
-		DependentObject(GameObject* reference);
-
-		virtual ~DependentObject();
-
-		virtual const std::string& getPackageName() const = 0;
-
-		virtual bool isValid() const = 0;
-
-		GameObject* getReference() const { return m_reference; }
-
-	protected:
-		GameObject* m_reference;
-	};
-
 	template <typename T>
 	class SoftObject<T, std::enable_if_t<std::is_base_of_v<GameObject, T>>>
 	{
-		class DependentBridge : public DependentObject
-		{
-		public:
-			DependentBridge(SoftObject<T>* object)
-				: DependentObject(nullptr)
-				, m_object(object)
-			{
-
-			}
-
-			const std::string& getPackageName() const override
-			{
-				return m_object->getPath();
-			}
-
-			bool isValid() const override
-			{
-				return !m_object->getPath().empty();
-			}
-
-		private:
-			SoftObject<T>* m_object;
-		};
 
 	public:
-		SoftObject(std::string path = "", GameObject* reference=nullptr)
+		SoftObject(std::string path = "")
 			: m_object(nullptr)
 			, m_packageName(path)
-			, m_bridge(this)
 		{
 		}
 
 		template<typename U,
 			typename = std::enable_if_t<std::is_base_of_v<T, U>>>
-		SoftObject(const std::shared_ptr<U> object, GameObject* reference = nullptr)
+		SoftObject(const std::shared_ptr<U> object)
 			: m_object(object)
 			, m_packageName()
-			, m_bridge(this)
 		{
 			m_packageName = m_object->getPathName().fullpath;
 		}
@@ -78,16 +35,11 @@ namespace volucris
 		SoftObject(const SoftObject<U>& other)
 			: m_object(std::dynamic_pointer_cast<T>(other.object()))
 			, m_packageName(other.getPath())
-			, m_bridge(this)
 		{
 		}
 
 		~SoftObject()
 		{
-			if (auto reference = m_bridge.getReference())
-			{
-				//reference->remove
-			}
 		}
 
 		std::shared_ptr<T> tryLoad()
@@ -159,7 +111,6 @@ namespace volucris
 	private:
 		std::shared_ptr<T> m_object;
 		std::string m_packageName;
-		DependentBridge m_bridge;
 	};
 }
 

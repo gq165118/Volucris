@@ -4,17 +4,17 @@
 #include <map>
 #include "AssetData.h"
 #include <Engine/Core/Delegate.h>
-#include <Engine/Game/Package.h>
 
 namespace volucris
 {
-	DECLARE_EVENT_MUTI_DELEGATE(PackageEvent, void, Package*)
-	DECLARE_EVENT_MUTI_DELEGATE(AssetUnRegisterEvent, void, const std::string&)
-	DECLARE_EVENT_MUTI_DELEGATE(AssetLoaded, void, Package*)
-
+	class Package;
 	class World;
 	class Package;
 	class GameObject;
+
+	DECLARE_EVENT_MUTI_DELEGATE(PackageEvent, void, Package*)
+	DECLARE_EVENT_MUTI_DELEGATE(AssetUnRegisterEvent, void, const std::string&)
+	DECLARE_EVENT_MUTI_DELEGATE(AssetLoaded, void, Package*)
 
 	class AssetManager
 	{

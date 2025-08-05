@@ -5,6 +5,7 @@
 #include <string>
 #include <Engine/Asset/AssetData.h>
 #include <boost/serialization/vector.hpp>
+#include "Engine/Game/DependentCollector.h"
 
 namespace volucris
 {
@@ -47,14 +48,7 @@ namespace volucris
 			ar& m_object;
 		}
 
-		void updateDependecies()
-		{
-			m_assetData.dependencies.clear();
-			if (m_object)
-			{
-				m_assetData.dependencies = m_object->collectDependencies();
-			}
-		}
+		void updateDependecies();
 
 	private:
 		AssetData m_assetData; // 包含的资源数据

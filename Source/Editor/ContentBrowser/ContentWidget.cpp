@@ -49,6 +49,7 @@ namespace volucris
 		, m_folderDirty(false)
 		, m_folder()
 		, m_nameChangedPackages()
+		, m_commandItem(nullptr)
 	{
 		setCurrentFolder(u8"/Engine/Content/Editor");
 
@@ -149,6 +150,11 @@ namespace volucris
 				deleteOperation = true;
 			}
 
+			if (m_items[i]->shouldExecuteCommmand())
+			{
+				m_commandItem = m_items[i];
+			}
+
 			ImGui::NextColumn();
 			ImGui::PopID();
 		}
@@ -179,6 +185,12 @@ namespace volucris
 
 		ImGui::End();
 
+		if (m_commandItem)
+		{
+			m_commandItem->executeMenuCommand();
+			m_commandItem = nullptr;
+		}
+
 		if (m_folderDirty)
 		{
 			setCurrentFolder(m_folder);
@@ -202,7 +214,7 @@ namespace volucris
 
 		if (deleteOperation)
 		{
-			std::vector<std::unique_ptr<ContentItemWidget>> items;
+			std::vector<std::shared_ptr<ContentItemWidget>> items;
 			for (auto& item : m_items)
 			{
 				if (item->isSelected())
@@ -412,7 +424,7 @@ namespace volucris
 		}
 	}
 
-	std::unique_ptr<ContentItemWidget> ContentWidget::createFolderItem(const std::string& fullpath)
+	std::shared_ptr<ContentItemWidget> ContentWidget::createFolderItem(const std::string& fullpath)
 	{
 		std::shared_ptr<RHITexture2D> iconTexture = nullptr;
 		if (auto window = dynamic_cast<EditorWindow*>(getTopWidget()))
@@ -425,7 +437,7 @@ namespace volucris
 		folderThumbnail.pos = { 0, 0 };
 		folderThumbnail.size = { 128, 128 };
 		folderThumbnail.update();
-		auto item = std::make_unique<ContentItemWidget>();
+		auto item = std::make_shared<ContentItemWidget>();
 		auto context = std::make_unique<FolderContext>(this, item.get());
 		context->setAssetPath(fullpath);
 		context->setThumbnail(folderThumbnail);
@@ -433,12 +445,12 @@ namespace volucris
 		return item;
 	}
 
-	std::unique_ptr<ContentItemWidget> ContentWidget::createAssetItem(const AssetInfo& assetInfo)
+	std::shared_ptr<ContentItemWidget> ContentWidget::createAssetItem(const AssetInfo& assetInfo)
 	{
 		Thumbnail thumbnail;
 		thumbnail.size = { 128, 128 };
 
-		std::unique_ptr<ContentItemWidget>  item = nullptr;
+		std::shared_ptr<ContentItemWidget>  item = nullptr;
 
 		if (assetInfo.data.className == "Material")
 		{
@@ -486,36 +498,36 @@ namespace volucris
 		return item;
 	}
 
-	std::unique_ptr<ContentItemWidget> ContentWidget::createMaterialItem(const AssetInfo& info)
+	std::shared_ptr<ContentItemWidget> ContentWidget::createMaterialItem(const AssetInfo& info)
 	{
-		auto item = std::make_unique<ContentItemWidget>();
+		auto item = std::make_shared<ContentItemWidget>();
 		auto context = std::make_unique<MaterialContext>(this, item.get());
 		context->setAssetInfo(info);
 		item->setContext(std::move(context));
 		return item;
 	}
 
-	std::unique_ptr<ContentItemWidget> ContentWidget::createMaterialInstanceItem(const AssetInfo& info)
+	std::shared_ptr<ContentItemWidget> ContentWidget::createMaterialInstanceItem(const AssetInfo& info)
 	{
-		auto item = std::make_unique<ContentItemWidget>();
+		auto item = std::make_shared<ContentItemWidget>();
 		auto context = std::make_unique<MaterialInstanceContext>(this, item.get());
 		context->setAssetInfo(info);
 		item->setContext(std::move(context));
 		return item;
 	}
 
-	std::unique_ptr<ContentItemWidget> ContentWidget::createTexture2DItem(const AssetInfo& assetInfo)
+	std::shared_ptr<ContentItemWidget> ContentWidget::createTexture2DItem(const AssetInfo& assetInfo)
 	{
-		auto item = std::make_unique<ContentItemWidget>();
+		auto item = std::make_shared<ContentItemWidget>();
 		auto context = std::make_unique<Texture2DContext>(this, item.get());
 		context->setAssetInfo(assetInfo);
 		item->setContext(std::move(context));
 		return item;
 	}
 
-	std::unique_ptr<ContentItemWidget> ContentWidget::createStaticMeshItem(const AssetInfo& assetInfo)
+	std::shared_ptr<ContentItemWidget> ContentWidget::createStaticMeshItem(const AssetInfo& assetInfo)
 	{
-		auto item = std::make_unique<ContentItemWidget>();
+		auto item = std::make_shared<ContentItemWidget>();
 		auto context = std::make_unique<AssetContext>(this, item.get());
 		context->setAssetInfo(assetInfo);
 		item->setContext(std::move(context));

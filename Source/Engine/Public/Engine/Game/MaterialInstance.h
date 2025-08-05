@@ -75,8 +75,6 @@ namespace volucris
 
 		MaterialUpdateData getUpdateData();
 
-		std::vector<std::string> collectDependencies() const override;
-
 	protected:
 		std::vector<MaterialParameterUpdateInfo> getUpdateParameterInfos();
 

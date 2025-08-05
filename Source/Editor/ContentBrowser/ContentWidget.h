@@ -53,26 +53,27 @@ namespace volucris
 		void onAssetUnregistered(const std::string& packageName);
 
 	private:
-		std::unique_ptr<ContentItemWidget> createFolderItem(const std::string& fullpath);
+		std::shared_ptr<ContentItemWidget> createFolderItem(const std::string& fullpath);
 
-		std::unique_ptr<ContentItemWidget> createAssetItem(const AssetInfo& assetInfo);
+		std::shared_ptr<ContentItemWidget> createAssetItem(const AssetInfo& assetInfo);
 
-		std::unique_ptr<ContentItemWidget> createMaterialItem(const AssetInfo& assetInfo);
+		std::shared_ptr<ContentItemWidget> createMaterialItem(const AssetInfo& assetInfo);
 
-		std::unique_ptr<ContentItemWidget> createMaterialInstanceItem(const AssetInfo& assetInfo);
+		std::shared_ptr<ContentItemWidget> createMaterialInstanceItem(const AssetInfo& assetInfo);
 
-		std::unique_ptr<ContentItemWidget> createTexture2DItem(const AssetInfo& assetInfo);
+		std::shared_ptr<ContentItemWidget> createTexture2DItem(const AssetInfo& assetInfo);
 
-		std::unique_ptr<ContentItemWidget> createStaticMeshItem(const AssetInfo& assetInfo);
+		std::shared_ptr<ContentItemWidget> createStaticMeshItem(const AssetInfo& assetInfo);
 
 	private:
 		float m_scale;
 		glm::vec2 m_itemSize;
-		std::vector<std::unique_ptr<ContentItemWidget>> m_items;
+		std::vector<std::shared_ptr<ContentItemWidget>> m_items;
 		bool m_multiSelect;
 		bool m_folderDirty;
 		std::string m_folder;
 		std::vector<std::pair<std::shared_ptr<Package>, std::string>> m_nameChangedPackages;
+		std::shared_ptr<ContentItemWidget> m_commandItem;
 	};
 }
 

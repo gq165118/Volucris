@@ -67,8 +67,6 @@ namespace volucris
 			return this;
 		}
 
-		std::vector<std::string> collectDependencies() const override;
-
 	protected:
 		virtual std::shared_ptr<MaterialInstanceProxy> createMaterialProxy();
 

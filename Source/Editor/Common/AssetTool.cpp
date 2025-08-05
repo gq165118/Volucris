@@ -7,6 +7,7 @@
 #include <Engine/Game/MaterialInstance.h>
 #include "AssetObjectHelper.h"
 #include <Engine/FileSystem/FileSystem.h>
+#include <Engine/Game/Package.h>
 #include <filesystem>
 
 namespace fs = std::filesystem;
@@ -87,7 +88,6 @@ namespace volucris
 		{
 			if (auto object = inst.load(packageName))
 			{
-				object->replaceDependency(assetData.path, newPackageName);
 			}
 		}
 	}

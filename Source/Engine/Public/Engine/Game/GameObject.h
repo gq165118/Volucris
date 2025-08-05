@@ -13,6 +13,7 @@
 #include <Engine/Core/Delegate.h>
 #include <Engine/Core/TypesHelp.h>
 #include <Engine/Asset/AssetPath.h>
+#include <Engine/Game/SoftObject.h>
 
 namespace volucris
 {
@@ -61,13 +62,6 @@ namespace volucris
 			return m_pathName.name;
 		}
 
-		virtual std::vector<std::string> collectDependencies() const
-		{
-			return {};
-		}
-
-		void replaceDependency(const std::string& oldPath, const std::string& newPath);
-
 		virtual std::string getClassName() const { return ""; }
 
 		void markDirty(bool dirty)
@@ -84,21 +78,10 @@ namespace volucris
 			return m_dirty;
 		}
 
-		bool isDependentOn(const std::string& packageName) const
-		{
-			return m_dependences.find(packageName) != m_dependences.end();
-		}
-
-	protected:
-		friend class DependentObject;
-		void removeDependence(DependentObject* dependence);
-
-		void addDependence(DependentObject* dependence);
 
 	private:
 		bool m_dirty;
 		AssetPath m_pathName;
-		std::unordered_map<std::string, DependentObject*> m_dependences;
 	};
 }
 

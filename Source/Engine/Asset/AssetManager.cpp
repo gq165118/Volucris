@@ -107,7 +107,6 @@ namespace volucris
 		{
 			return;
 		}
-		m_assetDatas[object->getPathName().fullpath].dependencies = object->collectDependencies();
 	}
 
 	bool AssetManager::save(const std::shared_ptr<Package>& package)

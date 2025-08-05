@@ -33,17 +33,12 @@ namespace volucris
 			return;
 		}
 
-		m_material = material;
-		if (!m_material)
-		{
-			m_material.tryLoad();
-		}
-
 		m_floatParameters.clear();
 		m_vec4Parameters.clear();
 		m_texture2dParameters.clear();
 
-		if (!m_material)
+		m_material = material;
+		if (!m_material && !m_material.tryLoad())
 		{
 			return;
 		}
@@ -167,24 +162,6 @@ namespace volucris
 			return { proxy, getUpdateParameterInfos() };
 		}
 		return {};
-	}
-
-	std::vector<std::string> MaterialInstance::collectDependencies() const
-	{
-		std::set<std::string> dependecies;
-		if (m_material)
-		{
-			dependecies.insert(m_material.getPath());
-
-			for (const auto & parameter : m_texture2dParameters)
-			{
-				if (parameter.getValue().isValid())
-				{
-					dependecies.insert(parameter.getValue().getPath());
-				}
-			}
-		}
-		return std::vector<std::string>(dependecies.begin(), dependecies.end());
 	}
 
 	std::vector<MaterialParameterUpdateInfo> MaterialInstance::getUpdateParameterInfos()
