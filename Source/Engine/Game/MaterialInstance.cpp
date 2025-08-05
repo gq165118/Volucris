@@ -300,7 +300,7 @@ namespace volucris
 			if (param.getName() == name)
 			{
 				param.setValue(value);
-				m_dirty = true;
+				markDirty(true);
 				return true;
 			}
 		}

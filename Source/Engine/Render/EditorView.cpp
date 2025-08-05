@@ -192,7 +192,7 @@ namespace volucris
 		state.color = { 0.0, 0.8, 1.0, 1.0 };
 		cmdList->clear(state);
 
-		RHICmdList->drawPrimitive(shader.get(), *(mesh->get(0)), Rect(0, ATLAS_SIZE- ATLAS_SIZE/4,ATLAS_SIZE/4, ATLAS_SIZE/4));
+		//RHICmdList->drawPrimitive(shader.get(), *(mesh->get(0)), Rect(0, ATLAS_SIZE- ATLAS_SIZE/4,ATLAS_SIZE/4, ATLAS_SIZE/4));
 
 		swapViewData(cmdList);
 		GL_CHECK();
