@@ -16,21 +16,21 @@ namespace volucris
 		Vector4,
 		Mat4,
 		Texture2D,
-		Int
+		UniformBlock
 	};
 
 	struct MaterialParameterUpdateInfo
 	{
 		size_t id = 0;
 		MaterialParamterType type = MaterialParamterType::Float;
-		std::variant<float, int, glm::vec4, glm::mat4, std::shared_ptr<Texture2DProxy>> value;
+		std::variant<uint32, float, glm::vec4, glm::mat4, std::shared_ptr<Texture2DProxy>> value;
 	};
 
 	struct MaterialParameterInfo
 	{
 		std::string name;
 		MaterialParamterType type = MaterialParamterType::Float;
-		std::variant<float, int, glm::vec4, glm::mat4, std::shared_ptr<Texture2DProxy>> value;
+		std::variant<uint32, float, glm::vec4, glm::mat4, std::shared_ptr<Texture2DProxy>> value;
 	};
 }
 

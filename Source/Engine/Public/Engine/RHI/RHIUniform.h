@@ -12,11 +12,11 @@ namespace volucris
 	class RHIUniform
 	{
 	public:
-		RHIUniform() : m_name(), m_location(-1) {}
+		RHIUniform() : m_name(), m_location(-1), m_program(nullptr) {}
 
 		virtual ~RHIUniform() = default;
 
-		bool init(RHIProgram* program, const std::string& name);
+		virtual bool init(RHIProgram* program, const std::string& name);
 
 		const std::string& getName() const { return m_name; }
 
@@ -25,6 +25,7 @@ namespace volucris
 	protected:
 		std::string m_name;
 		int32 m_location;
+		RHIProgram* m_program;
 	};
 
 	class RHIUniformFloat : public RHIUniform
@@ -106,6 +107,33 @@ namespace volucris
 
 	private:
 		int m_value;
+	};
+
+	class RHIUniformBlock : public RHIUniform
+	{
+	public:
+		RHIUniformBlock(uint32 value = 0)
+			: RHIUniform()
+			, m_value(value)
+		{
+		}
+
+		bool init(RHIProgram* program, const std::string& name);
+
+		void upload() const  override;
+
+		void setValue(uint32 value)
+		{
+			m_value = value;
+		}
+
+		uint32 getValue() const
+		{
+			return m_value;
+		}
+
+	private:
+		uint32 m_value;
 	};
 }
 

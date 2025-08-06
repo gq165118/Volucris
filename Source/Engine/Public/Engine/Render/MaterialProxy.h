@@ -9,6 +9,7 @@
 namespace volucris
 {
 	class RHIUniform;
+	class RHIUniformBlock;
 	class RHIProgram;
 	class RHICommandList;
 
@@ -34,6 +35,7 @@ namespace volucris
 		std::unique_ptr<RHIProgram> m_program;
 		std::vector<MaterialParameterInfo> m_parameters;
 		std::vector<std::unique_ptr<RHIUniform>> m_uniforms;
+		std::vector<std::unique_ptr<RHIUniformBlock>> m_uniformBlocks;
 	};
 }
 

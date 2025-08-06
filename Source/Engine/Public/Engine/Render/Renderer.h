@@ -7,7 +7,7 @@
 namespace volucris
 {
 	class Window;
-	class View;
+	class BaseView;
 	class RHICommandList;
 
 	class Renderer : public Runable
@@ -25,11 +25,11 @@ namespace volucris
 
 		RHICommandList* getRenderCommand() { return m_cmdList.get(); }
 
-		void addView(std::unique_ptr<View> view);
+		void addView(std::unique_ptr<BaseView> view);
 
 		void updateMaterialParameters(std::vector<MaterialUpdateData> datas);
 
-		void removeView(View* view);
+		void removeView(BaseView* view);
 
 		void renderFrame() { main(); }
 
@@ -53,7 +53,7 @@ namespace volucris
 
 	private:
 		std::unique_ptr<Window> m_window;
-		std::vector<std::unique_ptr<View>> m_views;
+		std::vector<std::unique_ptr<BaseView>> m_views;
 		std::unique_ptr<RHICommandList> m_cmdList;
 	};
 }

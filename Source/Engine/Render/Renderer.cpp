@@ -8,7 +8,7 @@
 #include <RHI/RHICommandList.h>
 #include <RHI/RHIRenderTarget.h>
 #include <RHI/RHIBuffer.h>
-#include <Render/View.h>
+#include <Render/BaseView.h>
 #include <Core/VectorHelp.h>
 #include <Render/Scene.h>
 #include <Render/MaterialInstanceProxy.h>
@@ -28,8 +28,9 @@ namespace volucris
 	{
 		for (auto& view : m_views)
 		{
-			// todo: frame update
+			view->bindTarget(m_cmdList.get());
 			view->render(m_cmdList.get());
+			view->swapViewData(m_cmdList.get());
 		}
 		FrameSynthesier::getInstance().countRenderFrame();
 	}
@@ -75,7 +76,7 @@ namespace volucris
 			}, block);
 	}
 
-	void Renderer::addView(std::unique_ptr<View> view)
+	void Renderer::addView(std::unique_ptr<BaseView> view)
 	{
 		m_views.emplace_back(std::move(view));
 	}
@@ -90,9 +91,9 @@ namespace volucris
 			});
 	}
 
-	void Renderer::removeView(View* view)
+	void Renderer::removeView(BaseView* view)
 	{
-		VectorHelp::quickRemoveAllIf<std::unique_ptr<View>>(m_views, [view](const std::unique_ptr<View>& v) {
+		VectorHelp::quickRemoveAllIf<std::unique_ptr<BaseView>>(m_views, [view](const std::unique_ptr<BaseView>& v) {
 			return v.get() == view;
 			});
 		m_views.clear();

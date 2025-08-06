@@ -1,6 +1,6 @@
 #include <Viewport/ViewportWidget.h>
 #include <imgui.h>
-#include <Engine/Render/View.h>
+#include <Engine/Render/BaseView.h>
 #include <Engine/Application/Window.h>
 #include <Engine/Render/Renderer.h>
 #include <Engine/Core/Task.h>
@@ -22,11 +22,11 @@ namespace volucris
 {
 	struct CreateViewTask
 	{
-		mutable std::unique_ptr<View> view;
+		mutable std::unique_ptr<BaseView> view;
 		Size size;
 		ViewportWidget* client;
 
-		CreateViewTask(std::unique_ptr<View> v, Size s)
+		CreateViewTask(std::unique_ptr<BaseView> v, Size s)
 			: view(std::move(v)), size(s), client(nullptr) {}
 
 		CreateViewTask(const CreateViewTask& task)
@@ -44,6 +44,7 @@ namespace volucris
 		void execute()
 		{
 			view->resize(size.width, size.height);
+			view->init();
 			auto v = view.get();
 			Renderer::getInstance().addView(std::move(view));
 			Renderer::getInstance().renderFrame();
@@ -251,7 +252,7 @@ namespace volucris
 		if (!m_view && m_world && context)
 		{
 			auto scene = m_world->createScene();
-			auto view = std::make_unique<View>(scene);
+			auto view = onCreateView(scene);
 			m_view = view.get();
 			
 			CreateViewTask task = CreateViewTask(std::move(view), m_size);

@@ -1,44 +1,36 @@
 #ifndef __volucris_view_h__
 #define __volucris_view_h__
 
-#include <memory>
-#include <Engine/RHI/RHICommandList.h>
-#include <Engine/Core/TextureDefines.h>
+#include <Engine/Render/BaseView.h>
 
 namespace volucris
 {
-	class Scene;
-	class RHIRenderTarget;
-	class RHIReadPixelBuffer;
-	class StaticMeshProxy;
-	class MaterialInstanceProxy;
+	struct Camera
+	{
+		glm::mat4 projectionMat;
+		glm::mat4 viewMat;
+	};
 
-	class View
+	class RHIUniformBuffer;
+
+	class View : public BaseView
 	{
 	public:
 		View();
 
 		View(const std::shared_ptr<Scene>& scene);
 
-		virtual ~View();
+		void init() override;
 
-		void resize(int width, int height);
+		void updateProjectionMatrix(const glm::mat4& mat);
 
-		virtual void render(RHICommandList* cmdList);
+		void updateViewMatrix(const glm::mat4& mat);
 
-		virtual void swapViewData(RHICommandList* cmdList);
+		void render(RHICommandList* cmdList) override;
 
-		Texture::TextureData getViewData() const
-		{
-			return m_targetData;
-		}
-
-	private:
-		std::vector<std::unique_ptr<RHIRenderTarget>> m_targets;
-		std::vector<std::unique_ptr<RHIReadPixelBuffer>> m_targetReaders;
-		Texture::TextureData m_targetData;
-		int m_current;
-		std::shared_ptr<Scene> m_scene;
+	private: 
+		Camera m_camera;
+		std::unique_ptr<RHIUniformBuffer> m_cameraUbo;
 	};
 }
 

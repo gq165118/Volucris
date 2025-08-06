@@ -6,9 +6,10 @@
 
 namespace volucris
 {
-	class View;
+	class BaseView;
 	class GameWorld;
 	class Window;
+	class Scene;
 	class RHITexture2D;
 	class RHICommandList;
 	class RHIWritePixelBuffer;
@@ -34,6 +35,8 @@ namespace volucris
 
 		void onWindowFocusChanged(FocusEvent* event) override;
 
+		virtual std::unique_ptr<BaseView> onCreateView(const std::shared_ptr<Scene>& scene) = 0;
+
 	private:
 		void recreateUploaders(RHICommandList* cmdList);
 
@@ -44,7 +47,7 @@ namespace volucris
 		void releaseView();
 
 	private:
-		View* m_view;
+		BaseView* m_view;
 		Size m_size;
 		int m_current;
 		std::shared_ptr<RHITexture2D> m_viewTexture;

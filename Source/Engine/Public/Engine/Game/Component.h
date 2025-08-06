@@ -8,6 +8,7 @@ namespace volucris
 {
 	class Entity;
 	class GameWorld;
+	class SceneComponent;
 	class PrimitiveSceneProxy;
 
 	class Component : public GameObject
@@ -31,6 +32,8 @@ namespace volucris
 
 		Entity* getEntity() const { return m_entity; }
 
+		SceneComponent* getParentComponent() const { return m_parent; }
+
 		GameWorld* getWorld() const;
 
 		virtual void update();
@@ -43,6 +46,8 @@ namespace volucris
 
 	protected:
 		void setEnity(Entity* entity);
+
+		void setParentComponent(SceneComponent* component);
 
 		virtual void onRenderStateChanged() {}
 
@@ -58,6 +63,7 @@ namespace volucris
 		uint8 m_dirtyFlags;
 
 		Entity* m_entity;
+		SceneComponent* m_parent;
 		std::weak_ptr<PrimitiveSceneProxy> m_primitiveSceneProxy;
 	};
 }

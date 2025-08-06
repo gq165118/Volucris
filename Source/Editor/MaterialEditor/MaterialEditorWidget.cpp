@@ -11,11 +11,12 @@
 #include <MaterialEditor/MaterialParameterWidget.h>
 #include <Engine/Game/MaterialInstance.h>
 #include <Engine/Game/StaticMeshComponent.h>
+#include <Viewport/EditorViewportWidget.h>
 
 namespace volucris
 {
     MaterialEditorWidget::MaterialEditorWidget()
-        : m_viewport(std::make_shared<ViewportWidget>())
+        : m_viewport(std::make_shared<EditorViewportWidget>())
         , m_world(std::make_shared<GameWorld>())
         , m_material()
         , m_parameterWidget(std::make_shared<MaterialParameterWidget>())

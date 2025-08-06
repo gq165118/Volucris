@@ -19,6 +19,7 @@ namespace volucris
 			ElementBuffer,
 			PixelPackBuffer,
 			PixelUnpackBuffer,
+			UniformBuffer
 		};
 
 		enum Usage
@@ -37,7 +38,9 @@ namespace volucris
 
 		void init(const std::vector<uint8>& data);
 
-		void init(const uint8* data, uint32 size);
+		void init(const void* data, uint32 size);
+
+		void update(const void* data, uint32 offset, uint32 size);
 
 		Type getType() const { return m_type; }
 

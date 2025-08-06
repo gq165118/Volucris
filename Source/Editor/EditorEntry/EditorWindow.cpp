@@ -29,6 +29,7 @@
 #include <Engine/Game/StaticMeshComponent.h>
 #include <Engine/Game/MaterialInstance.h>
 #include <Common/AssetItemWidget.h>
+#include <Viewport/EditorViewportWidget.h>
 
 namespace fs = std::filesystem;
 
@@ -76,7 +77,7 @@ namespace volucris
 
     MainWidget::MainWidget()
         : Widget()
-        , m_viewport(std::make_shared<ViewportWidget>())
+        , m_viewport(std::make_shared<EditorViewportWidget>())
         , m_logWidget(std::make_shared<LogWidget>())
         , m_contentBrowserWidget(std::make_shared<ContentBrowserWidget>())
     {

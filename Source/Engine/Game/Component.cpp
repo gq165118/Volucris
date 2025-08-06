@@ -8,6 +8,7 @@ namespace volucris
 		: GameObject()
 		, m_dirtyFlags(0)
 		, m_entity(nullptr)
+		, m_parent(nullptr)
 		, m_primitiveSceneProxy()
 	{
 	}
@@ -47,6 +48,13 @@ namespace volucris
 	void Component::setEnity(Entity* entity)
 	{
 		m_entity = entity;
+		markRenderStateDirty();
+	}
+
+	void Component::setParentComponent(SceneComponent* component)
+	{
+		m_parent = component;
+		markTransformDirty();
 	}
 } // namespace volucris
 

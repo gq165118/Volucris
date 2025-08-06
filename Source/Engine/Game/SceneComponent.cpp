@@ -7,7 +7,6 @@ namespace volucris
 {
 	SceneComponent::SceneComponent()
 		: Component()
-		, m_parentComp(nullptr)
 		, m_components()
 		, m_position(glm::vec3(0.0))
 		, m_rotation(glm::vec3(0.0))
@@ -24,31 +23,36 @@ namespace volucris
 		
 	}
 
-	void SceneComponent::attach(std::shared_ptr<SceneComponent> comp)
+	void SceneComponent::attach(std::shared_ptr<Component> comp)
 	{
-		if (comp->m_parentComp == this)
+		const auto& entity = getEntity();
+		if (!entity)
 		{
 			return;
 		}
-		comp->m_parentComp = this;
-		if (auto entity = getEntity())
+
+		if (comp->getEntity() != entity)
 		{
 			entity->attach(this, comp);
+			return;
 		}
+
 		m_components.push_back(comp);
 	}
 
-	void SceneComponent::disattach(std::shared_ptr<SceneComponent> comp)
+	void SceneComponent::disattach(std::shared_ptr<Component> comp)
 	{
-		if (comp->m_parentComp != this)
+		if (comp->getParentComponent() != this)
 		{
 			return;
 		}
+
 		if (auto entity = getEntity())
 		{
 			entity->disattach(comp);
+			return;
 		}
-		comp->m_parentComp = nullptr;
+
 		VectorHelp::quickRemove(m_components, comp);
 	}
 
@@ -74,9 +78,9 @@ namespace volucris
 		m_relativeTransform = m_relativeTransform * m_rotationTransform;
 		m_relativeTransform = glm::scale(m_relativeTransform, m_scale);
 
-		if (m_parentComp)
+		if (auto parent = getParentComponent())
 		{
-			m_worldTransform = m_parentComp->getWorldTransform() * m_relativeTransform;
+			m_worldTransform = parent->getWorldTransform() * m_relativeTransform;
 		}
 		else
 		{
@@ -87,7 +91,10 @@ namespace volucris
 
 		for (const auto& comp : m_components)
 		{
-			comp->updateTransform();
+			if (const auto& sceneComp = dynamic_cast<SceneComponent*>(comp.get()))
+			{
+				sceneComp->updateTransform();
+			}
 		}
 
 		markTransformDirty();

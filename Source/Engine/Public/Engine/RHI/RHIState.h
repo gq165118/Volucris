@@ -17,6 +17,7 @@ namespace volucris
 	class RHIVertexArray;
 	class RHIElementBuffer;
 	class RHICommandList;
+	class RHIUniformBuffer;
 
 	struct RHIClearState
 	{
@@ -32,17 +33,30 @@ namespace volucris
 		glm::vec4 color = glm::vec4(1,1,0,1);
 	};
 
+	struct RHIDepthTest
+	{
+		bool enabled = false;
+	};
+
+	struct RHICullFace
+	{
+		bool enabled = false;
+	};
+
 	struct RHIState
 	{
 		RHICommandList* commandList = nullptr;
 		Rect viewport = { 0,0,0,0 };
 		RHIClearState clearState = RHIClearState();
+		RHIDepthTest depthState = RHIDepthTest();
+		RHICullFace cullFace = RHICullFace();
 		RHITexture* texture2d = nullptr;
 		RHIRenderTarget* readTarget = nullptr;
 		RHIRenderTarget* writeTarget = nullptr;
 		RHIRenderTarget* renderTarget = nullptr;
 		RHIVertexArray* vertexArray = nullptr;
 		std::unordered_map<RHIBuffer::Type, RHIBuffer*> buffers = {};
+		std::unordered_map<uint32, RHIUniformBuffer*> uniformBuffers = {};
 		RHIProgram* program = nullptr;
 	};
 

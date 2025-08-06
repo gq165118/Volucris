@@ -9,12 +9,6 @@ layout(location=4) in vec3 v_uv;
 uniform vec4 u_color;
 uniform float u_scale;
 
-layout(std140) uniform UCameraInfo
-{
-	mat4 ProjectionMatrix;
-	mat4 ViewMatrix;
-};
-
 layout(location=0) out vec4 pixelColor;
 layout(location=1) out vec2 uv;
 
@@ -22,5 +16,5 @@ void main()
 {
 	pixelColor = u_color;
 	uv = v_uv.xy;
-	gl_Position = ProjectionMatrix * ViewMatrix * vec4(v_pos * u_scale, 1.0);
+	gl_Position = vec4(v_pos * u_scale, 1.0);
 }

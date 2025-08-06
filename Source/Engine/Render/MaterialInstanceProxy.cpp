@@ -13,7 +13,16 @@ namespace volucris
 	void MaterialInstanceProxy::setMaterial(const std::shared_ptr<MaterialProxy>& material)
 	{
 		m_material = material;
-		m_parameters = m_material->getParameters();
+		m_parameters.clear();
+
+		for (const auto& param : m_material->getParameters())
+		{
+			if (param.type == MaterialParamterType::UniformBlock)
+			{
+				break;
+			}
+			m_parameters.push_back(param);
+		}
 
 		auto texSlot = 0;
 		for (auto id = 0; id < m_parameters.size(); ++id)

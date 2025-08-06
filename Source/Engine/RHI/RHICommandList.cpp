@@ -14,6 +14,7 @@
 #include "RHIOpenGL.h"
 #include <thread>
 #include <sstream>
+#include <RHI/RHIUniformBuffer.h>
 
 namespace volucris
 {
@@ -111,6 +112,38 @@ namespace volucris
 			m_state.clearState.buffers = state.buffers;
 		}
 		glClear(m_impl->clearFlags);
+	}
+
+	void RHICommandList::setDepthTest(const RHIDepthTest& state)
+	{
+		if (state.enabled != m_state.depthState.enabled)
+		{
+			if (state.enabled)
+			{
+				glEnable(GL_DEPTH_TEST);
+			}
+			else
+			{
+				glDisable(GL_DEPTH_TEST);
+			}
+			m_state.depthState.enabled = state.enabled;
+		}
+	}
+
+	void RHICommandList::setCullFace(const RHICullFace& cullface)
+	{
+		if (cullface.enabled != m_state.cullFace.enabled)
+		{
+			if (cullface.enabled)
+			{
+				glEnable(GL_CULL_FACE);
+			}
+			else
+			{
+				glDisable(GL_CULL_FACE);
+			}
+			m_state.cullFace.enabled = cullface.enabled;
+		}
 	}
 
 	void RHICommandList::executeCommand(const std::string& name)
@@ -268,6 +301,14 @@ namespace volucris
 			m_state.buffers[buffer->getType()] = nullptr;
 		}
 	}
+
+	void RHICommandList::bindUniformBufferToSlot(RHIUniformBuffer* buffer, uint32 slot)
+	{
+		m_state.buffers[buffer->getType()] = buffer;
+		m_state.uniformBuffers[slot] = buffer;
+		glBindBufferBase(GL_UNIFORM_BUFFER, slot, buffer->getId());
+	}
+
 
 	void RHICommandList::makesureBufferUnset(RHIBuffer::Type type)
 	{

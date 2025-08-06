@@ -37,6 +37,10 @@ namespace volucris
 
 		void clear(const RHIClearState& state);
 
+		void setDepthTest(const RHIDepthTest& state);
+
+		void setCullFace(const RHICullFace& cullface);
+
 		void executeCommand(const std::string& name);
 
 		void bindTexture2D(uint32 index, RHITexture2D* texture);
@@ -58,6 +62,8 @@ namespace volucris
 		bool setBuffer(RHIBuffer* buffer);
 
 		void unsetBuffer(RHIBuffer* buffer);
+
+		void bindUniformBufferToSlot(RHIUniformBuffer* buffer, uint32 slot);
 
 		void makesureBufferUnset(RHIBuffer::Type type);
 

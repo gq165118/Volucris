@@ -11,7 +11,7 @@ namespace volucris
 {
 	Entity::Entity()
 		: GameObject()
-		, m_components()
+		, m_rootComponent(nullptr)
 		, m_region(nullptr)
 	{
 
@@ -38,65 +38,47 @@ namespace volucris
 			entity->disattach(component);
 		}
 
-		std::vector<std::shared_ptr<Component>> components;
-		if (auto sceneComp = std::dynamic_pointer_cast<SceneComponent>(component))
-		{
-			std::vector<std::shared_ptr<SceneComponent>> sceneComponents;
-			getSceneComponents(sceneComp, sceneComponents);
-			components.reserve(sceneComponents.size());
-			for (const auto& component : sceneComponents)
-			{
-				components.push_back(component);
-				static_cast<Component*>(component.get())->setEnity(this);
-			}
-		}
-		else
-		{
-			component->setEnity(this);
-			components = { component };
-		}
+		component->setEnity(this);
 
-		attachComponentsToScene(components);
-		m_components.emplace_back(component);
+		if (!m_rootComponent)
+		{
+			m_rootComponent = component;
+		} 
+		else if (auto sceneComponent = std::dynamic_pointer_cast<SceneComponent>(m_rootComponent))
+		{
+			sceneComponent->attach(component);
+		}
 	}
 
-	void Entity::attach(SceneComponent* parent, const std::shared_ptr<SceneComponent>& sceneComponent)
+	void Entity::attach(SceneComponent* parent, const std::shared_ptr<Component>& component)
 	{
-		if (parent->getEntity() != this || parent == sceneComponent->getParentSceneComponent())
+		if (component->getEntity() == this)
 		{
 			return;
 		}
 
-		if (auto entity = sceneComponent->getEntity())
+		if (auto entity = component->getEntity())
 		{
 			if (entity->getWorld() != getWorld())
 			{
-				entity->disattachComponentFromScene(sceneComponent);
+				entity->disattachComponentFromScene(component);
 			}
-
-			if (auto oldParent = sceneComponent->getParentSceneComponent())
-			{
-				VectorHelp::quickRemove(oldParent->m_components, sceneComponent);
-				sceneComponent->m_parentComp = nullptr;
-			}
-			else
-			{
-				VectorHelp::quickRemove(entity->m_components, static_cast<Component*>(sceneComponent.get()));
-			}
+			entity->disattach(component);
 		}
 		
-		parent->attach(sceneComponent);
+		component->setEnity(this);
+		parent->attach(component);
 
-		std::vector<std::shared_ptr<Component>> components;
-		std::vector<std::shared_ptr<SceneComponent>> sceneComponents;
-		getSceneComponents(sceneComponent, sceneComponents);
-		components.reserve(sceneComponents.size());
-		for (const auto& component : sceneComponents)
+		if (auto sceneComponent = std::dynamic_pointer_cast<SceneComponent>(component))
 		{
-			components.push_back(component);
-			static_cast<Component*>(component.get())->setEnity(this);
+			std::vector<std::shared_ptr<Component>> components;
+			getComponents(sceneComponent, components);
+			for (const auto& component : components)
+			{
+				component->setEnity(this);
+			}
+			attachComponentsToScene(components);
 		}
-		attachComponentsToScene(components);
 	}
 
 	void Entity::disattach(const std::shared_ptr<Component>& component)
@@ -106,26 +88,22 @@ namespace volucris
 			return;
 		}
 
-		bool isSubChildRemoved = false;
-		std::vector<std::shared_ptr<Component>> components;
+		component->setEnity(nullptr);
 		
+		if (const auto parent = component->getParentComponent())
+		{
+			parent->disattach(component);
+		}
+
+		std::vector<std::shared_ptr<Component>> components;
 		if (auto sceneComp = std::dynamic_pointer_cast<SceneComponent>(component))
 		{
-			std::vector<std::shared_ptr<SceneComponent>> sceneComponents;
-			getSceneComponents(sceneComp, sceneComponents);
-			components.reserve(sceneComponents.size());
-			for (const auto& comp : sceneComponents)
+			getComponents(sceneComp, components);
+			for (const auto& comp : components)
 			{
 				components.push_back(comp);
-				static_cast<Component*>(component.get())->setEnity(nullptr);
-			}
-
-			if (auto parent = sceneComp->getParentSceneComponent())
-			{
-				parent->disattach(sceneComp);
-				isSubChildRemoved = true;
-			}
-			
+				component->setEnity(nullptr);
+			}	
 		}
 		else
 		{
@@ -133,18 +111,11 @@ namespace volucris
 		}
 		disattachComponentsFromScene(components);
 		
-		if (!isSubChildRemoved)
-		{
-			VectorHelp::quickRemove(m_components, component);
-		}
 	}
 
 	void Entity::update()
 	{
-		for (const auto& comp : m_components)
-		{
-			comp->update();
-		}
+		m_rootComponent->update();
 	}
 
 	GameWorld* Entity::getWorld() const
@@ -188,24 +159,13 @@ namespace volucris
 	std::vector<std::shared_ptr<PrimitiveSceneProxy>> Entity::createPrimitiveProxies()
 	{
 		std::vector<std::shared_ptr<PrimitiveSceneProxy>> proxies;
-		proxies.reserve(m_components.size());
-		for (const auto& comp : m_components)
+
+		const auto& components = getComponents();
+		for (const auto& comp : components)
 		{
-			if (auto sceneComp = std::dynamic_pointer_cast<SceneComponent>(comp))
+			if (auto proxy = comp->createProxy())
 			{
-				std::vector<std::shared_ptr<SceneComponent>> components;
-				getSceneComponents(sceneComp, components);
-				for (const auto& component : components)
-				{
-					if (auto proxy = component->createProxy())
-					{
-						component->setPrimitiveSceneProxy(proxy);
-						proxies.push_back(proxy);
-					}
-				}
-			}
-			else if (auto proxy = comp->createProxy())
-			{
+				comp->setPrimitiveSceneProxy(proxy);
 				proxies.push_back(proxy);
 			}
 		}
@@ -216,28 +176,32 @@ namespace volucris
 	std::vector<std::shared_ptr<PrimitiveSceneProxy>> Entity::getPrimitiveProxies()
 	{
 		std::vector<std::shared_ptr<PrimitiveSceneProxy>> proxies;
-		proxies.reserve(m_components.size());
-		for (const auto& comp : m_components)
+		const auto& components = getComponents();
+		for (const auto& comp : components)
 		{
-			if (auto sceneComp = std::dynamic_pointer_cast<SceneComponent>(comp))
-			{
-				std::vector<std::shared_ptr<SceneComponent>> components;
-				getSceneComponents(sceneComp, components);
-				for (const auto& component : components)
-				{
-					if (auto proxy = component->getPrimitiveSceneProxy())
-					{
-						proxies.push_back(proxy);
-					}
-				}
-			}
-			else if (auto proxy = comp->getPrimitiveSceneProxy())
+			if (auto proxy = comp->getPrimitiveSceneProxy())
 			{
 				proxies.push_back(proxy);
 			}
 		}
 
 		return proxies;
+	}
+
+	std::vector<std::shared_ptr<Component>> Entity::getComponents() const
+	{
+		if (!m_rootComponent)
+		{
+			return {};
+		}
+
+		if (auto sceneComp = std::dynamic_pointer_cast<SceneComponent>(m_rootComponent))
+		{
+			std::vector<std::shared_ptr<Component>> components;
+			getComponents(sceneComp, components);
+			return components;
+		}
+		return { m_rootComponent };
 	}
 
 	void Entity::disattachFromScene()
@@ -297,21 +261,7 @@ namespace volucris
 
 	void Entity::disattachComponentFromScene(const std::shared_ptr<Component>& component)
 	{
-		std::vector<std::shared_ptr<Component>> components;
-		if (auto sceneComp = std::dynamic_pointer_cast<SceneComponent>(component))
-		{
-			std::vector<std::shared_ptr<SceneComponent>> sceneComponents;
-			getSceneComponents(sceneComp, sceneComponents);
-			components.reserve(sceneComponents.size());
-			for (const auto& comp : sceneComponents)
-			{
-				components.push_back(comp);
-			}
-		}
-		else
-		{
-			components = { component };
-		}
+		std::vector<std::shared_ptr<Component>> components = getComponents();
 		disattachComponentsFromScene(components);
 	}
 
@@ -324,7 +274,7 @@ namespace volucris
 		if (!scene) return;
 
 		std::vector<std::shared_ptr<PrimitiveSceneProxy>> proxies;
-		proxies.reserve(m_components.size());
+		proxies.reserve(components.size());
 		for (const auto& component : components)
 		{
 			if (auto proxy = component->getPrimitiveSceneProxy())
@@ -341,12 +291,22 @@ namespace volucris
 			});
 	}
 
-	void Entity::getSceneComponents(const std::shared_ptr<SceneComponent>& root, std::vector<std::shared_ptr<SceneComponent>>& components)
+	void Entity::getComponents(const std::shared_ptr<SceneComponent>& root, std::vector<std::shared_ptr<Component>>& components) const
 	{
 		components.push_back(root);
-		for (const auto& sceneComponent : root->getAttachedComponents())
+
+		for (const auto& component : root->getAttachedComponents())
 		{
-			getSceneComponents(sceneComponent, components);
+			if (auto sceneComponent = std::dynamic_pointer_cast<SceneComponent>(component))
+			{
+				getComponents(sceneComponent, components);
+			}
+			else
+			{
+				components.push_back(component);
+			}
 		}
 	}
 }
+
+BOOST_CLASS_EXPORT_IMPLEMENT(volucris::Entity)

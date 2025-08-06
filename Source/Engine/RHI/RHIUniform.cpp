@@ -9,6 +9,7 @@ namespace volucris
 	{
 		m_name = name;
 		m_location = glGetUniformLocation(program->getId(), name.c_str());
+		m_program = program;
 		return m_location >= 0;
 	}
 
@@ -30,5 +31,18 @@ namespace volucris
 	void RHIUniformInt::upload() const
 	{
 		glUniform1i(m_location, m_value);
+	}
+
+	bool RHIUniformBlock::init(RHIProgram* program, const std::string& name)
+	{
+		m_program = program;
+		m_name = name;
+		m_location = glGetUniformBlockIndex(program->getId(), name.c_str());
+		return m_location >= 0;
+	}
+
+	void RHIUniformBlock::upload() const
+	{
+		glUniformBlockBinding(m_program->getId(), m_location, m_value);
 	}
 }

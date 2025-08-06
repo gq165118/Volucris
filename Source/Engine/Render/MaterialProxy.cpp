@@ -31,7 +31,19 @@ namespace volucris
 		for (const auto& parameter : parameters)
 		{
 			auto type = parameter.type;
-			std::unique_ptr<RHIUniform> uniform;
+
+			if (type == volucris::MaterialParamterType::UniformBlock)
+			{
+				auto uni = std::make_unique<RHIUniformBlock>();
+				uni->setValue(std::get<uint32>(parameter.value));
+				uni->init(m_program.get(), parameter.name);
+				uni->upload();
+				m_uniformBlocks.push_back(std::move(uni));
+				continue;
+			}
+
+			std::unique_ptr<RHIUniform> uniform = nullptr;
+
 			switch (type)
 			{
 			case volucris::MaterialParamterType::Float:

@@ -194,6 +194,19 @@ namespace volucris
 				V_LOG_WARN(Editor, "MaterialTemplate: Unsupported uniform type: {}", uniform.type);
 			}
 		}
+
+		for (const auto& uniform : m_uniformBlocks)
+		{
+			MaterialParameter info;
+			info.type = MaterialParamterType::UniformBlock;
+			if (uniform.name == "UCameraInfo")
+			{
+				info.name = uniform.name;
+				info.value = (uint32)0;
+				parameters.push_back(info);
+			}
+		}
+
 		setParameters(std::move(parameters));
 	}
 

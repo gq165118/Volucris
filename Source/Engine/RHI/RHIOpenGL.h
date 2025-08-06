@@ -73,6 +73,8 @@ namespace volucris
 			return GL_PIXEL_PACK_BUFFER;
 		case volucris::RHIBuffer::PixelUnpackBuffer:
 			return GL_PIXEL_UNPACK_BUFFER;
+		case volucris::RHIBuffer::UniformBuffer:
+			return GL_UNIFORM_BUFFER;
 		default:
 			break;
 		}
