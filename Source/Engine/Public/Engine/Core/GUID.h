@@ -38,6 +38,31 @@ namespace volucris
 			ar& Data2;
 			ar& Data3;
 			ar& Data4;
+		}	
+
+	};
+
+	inline bool operator==(const GUID& lhs, const GUID& rhs) {
+		return lhs.Data1 == rhs.Data1 &&
+			lhs.Data2 == rhs.Data2 &&
+			lhs.Data3 == rhs.Data3 &&
+			lhs.Data4 == rhs.Data4;
+	}
+
+}
+
+namespace std {
+	template <>
+	struct hash<volucris::GUID> {
+		size_t operator()(const volucris::GUID& guid) const noexcept {
+			size_t h1 = hash<unsigned long>()(guid.Data1);
+			size_t h2 = hash<unsigned short>()(guid.Data2);
+			size_t h3 = hash<unsigned short>()(guid.Data3);
+			size_t h4 = 0;
+			for (auto b : guid.Data4) {
+				h4 ^= hash<unsigned char>()(b) + 0x9e3779b9 + (h4 << 6) + (h4 >> 2);
+			}
+			return h1 ^ (h2 << 1) ^ (h3 << 2) ^ h4;
 		}
 	};
 }

@@ -19,6 +19,7 @@
 #include <Common/AssetTool.h>
 #include <Engine/Asset/AssetPath.h>
 #include "AssetMenuContext.h"
+#include <ContentBrowser/AtlasManager.h>
 
 namespace fs = std::filesystem;
 
@@ -284,6 +285,20 @@ namespace volucris
 					{
 						gAssetTool.addDirtyAsset(packageName, texture);
 					}
+
+					//atlas资产注册管理
+					std::string path = package->getAssetData().path;
+					std::string className = package->getAssetData().className;
+					GUID guid = package->getAssetData().guid;
+					if (AtlasManager::Get().registerTexture(path, className, guid))
+					{
+						AtlasManager::Get().setCurTexture(texture);
+					}
+					else
+					{
+						V_LOG_WARN(Editor, "AtlasMandger register fail, {}", className);
+					}
+
 					V_LOG_INFO(Editor, "convert image success, {}", packageName);
 				}
 			}
