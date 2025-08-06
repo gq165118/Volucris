@@ -19,10 +19,10 @@ namespace volucris
 		return value;
 	}
 
-	static int stringToInt(std::string_view str)
+	static uint32 stringToInt(std::string_view str)
 	{
 		if (str.empty()) { return 0; }
-		int value = 0;
+		uint32 value = 0;
 		auto result = std::from_chars(str.data(), str.data() + str.size(), value);
 		return value;
 	}

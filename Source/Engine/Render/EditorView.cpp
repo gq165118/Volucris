@@ -198,21 +198,21 @@ namespace volucris
 		GL_CHECK();
 	}
 
-	void EditorView::swapViewData(RHICommandList* cmdList)
-	{
-		Rect rect = { 0,0,0,0 };
-		rect.setSize(m_targets[m_current]->getSize());
+	//void EditorView::swapViewData(RHICommandList* cmdList)
+	//{
+	//	Rect rect = { 0,0,0,0 };
+	//	rect.setSize(m_targets[m_current]->getSize());
 
-		int next = (m_current + 1) % FrameCount;
-		//把 FBO 的颜色附件指定区域读到绑定的 PBO（像素缓冲）里
-		m_targetReaders[next]->startRead(rect);
+	//	int next = (m_current + 1) % FrameCount;
+	//	//把 FBO 的颜色附件指定区域读到绑定的 PBO（像素缓冲）里
+	//	m_targetReaders[next]->startRead(rect);
 
-		//把上一步中存入 GPU PBO 的像素数据 异步读回到 CPU 侧
-		m_targetReaders[m_current]->readColorTo(m_targetData.data);
+	//	//把上一步中存入 GPU PBO 的像素数据 异步读回到 CPU 侧
+	//	m_targetReaders[m_current]->readColorTo(m_targetData.data);
 
-		m_current = next;
-		GL_CHECK();
-	}
+	//	m_current = next;
+	//	GL_CHECK();
+	//}
 
 #else
 

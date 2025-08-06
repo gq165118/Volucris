@@ -16,6 +16,7 @@ namespace volucris
 		Vector4,
 		Mat4,
 		Texture2D,
+		Int,
 		UniformBlock
 	};
 

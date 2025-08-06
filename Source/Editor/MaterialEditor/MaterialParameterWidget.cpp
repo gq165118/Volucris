@@ -81,9 +81,14 @@ namespace volucris
 					switch (type)
 					{
 					case volucris::MaterialParamterType::Int:
-						if (ImGui::DragInt("##", std::get_if<int>(&info.value), 0))
+						if (auto* value = std::get_if<uint32>(&info.value))
 						{
-							m_material->setIntParameter(info.name, std::get<int>(info.value));
+							int tmp = static_cast<int>(*value);
+							if (ImGui::DragInt("##", &tmp, 1.0f, 0, INT_MAX))
+							{
+								*value = static_cast<uint32>(tmp);
+								m_material->setIntParameter(info.name, *value);
+							}
 						}
 						break;
 					case volucris::MaterialParamterType::Float:

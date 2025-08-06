@@ -67,7 +67,7 @@ namespace volucris
 					break;
 				case volucris::MaterialParamterType::Int:
 				{
-					MaterialIntParameter parameter = MaterialIntParameter(info.name, std::get<int>(info.value));
+					MaterialIntParameter parameter = MaterialIntParameter(info.name, std::get<uint32>(info.value));
 					parameter.setId(idx);
 					m_intParameters.push_back(parameter);
 				}

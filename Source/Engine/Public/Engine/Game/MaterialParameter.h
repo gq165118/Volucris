@@ -56,7 +56,7 @@ namespace volucris
 			return info;
 		}
 
-		static MaterialParameterUpdateInfo getParameterUpdateInfo(size_t id, const int& value)
+		static MaterialParameterUpdateInfo getParameterUpdateInfo(size_t id, const uint32& value)
 		{
 			MaterialParameterUpdateInfo info;
 			info.id = id;
@@ -215,7 +215,7 @@ namespace volucris
 	};
 
 	using MaterialFloatParameter = MaterialParameterTemplate<float>;
-	using MaterialIntParameter = MaterialParameterTemplate<int>;
+	using MaterialIntParameter = MaterialParameterTemplate<uint32>;
 	using MaterialVector4Parameter = MaterialParameterTemplate<glm::vec4>;
 	using MaterialTexture2DParameter = MaterialParameterTemplate<SoftObject<Texture2D>>;
 }

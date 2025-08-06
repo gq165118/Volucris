@@ -10,7 +10,7 @@ namespace volucris
 	class RHIRenderTarget;
 	class RHIReadPixelBuffer;
 
-	class EditorView : public View
+	class EditorView : public BaseView
 	{
 	public:
 		EditorView();
@@ -23,7 +23,7 @@ namespace volucris
 
 		void render(RHICommandList* cmdList) override;
 
-		void swapViewData(RHICommandList* cmdList) override;
+		//void swapViewData(RHICommandList* cmdList) override;
 
 		Texture::TextureData getViewData() const
 		{
