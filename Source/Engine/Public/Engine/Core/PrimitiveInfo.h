@@ -38,8 +38,8 @@ namespace volucris
 	{
 		ElementDataType type;
 		ElementDrawMode mode;
-		size_t offset;
-		size_t count;
+		size_t offset;   //当前段在ebo的起始偏移
+		size_t count;	 //当前段索引数量，即绘制多少个顶点
 
 		template <class Archive>
 		void serialize(Archive& ar, const unsigned int version)
