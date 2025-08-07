@@ -51,12 +51,12 @@ namespace volucris
 		RHIDepthTest depthState = RHIDepthTest();
 		RHICullFace cullFace = RHICullFace();
 		RHITexture* texture2d = nullptr;
-		RHIRenderTarget* readTarget = nullptr;
-		RHIRenderTarget* writeTarget = nullptr;
+		RHIRenderTarget* readTarget = nullptr;	//当前绑定的读fbo
+		RHIRenderTarget* writeTarget = nullptr;  //当前绑定的写fbo
 		RHIRenderTarget* renderTarget = nullptr;
-		RHIVertexArray* vertexArray = nullptr;
-		std::unordered_map<RHIBuffer::Type, RHIBuffer*> buffers = {};
-		std::unordered_map<uint32, RHIUniformBuffer*> uniformBuffers = {};
+		RHIVertexArray* vertexArray = nullptr;	//当前绑定vao
+		std::unordered_map<RHIBuffer::Type, RHIBuffer*> buffers = {};  //各类绑定的缓冲对象（VBO/PBO/Ubo等）
+		std::unordered_map<uint32, RHIUniformBuffer*> uniformBuffers = {}; // Slot->Ubo 映射
 		RHIProgram* program = nullptr;
 	};
 

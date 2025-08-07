@@ -1,3 +1,14 @@
+/**
+ * @class RHICommandList
+ * @brief 封装渲染命令的执行接口，作为 RHI 层的核心渲染指令管理类。
+ *
+ * RHICommandList 代表一个渲染上下文，封装了 OpenGL（或其他图形 API）的状态设置、
+ * 渲染目标切换、资源绑定和绘制调用等功能。通过统一接口屏蔽底层 API 差异，
+ * 实现平台无关的渲染命令封装。
+ *
+ * 该类内部持有一个 RHIState 结构体，用于记录当前上下文中的资源绑定状态，
+ * 避免不必要的状态切换，提高渲染效率。
+ */
 #ifndef __volucris_rhi_commmand_list_h__
 #define __volucris_rhi_commmand_list_h__
 
@@ -81,7 +92,7 @@ namespace volucris
 
 	private:
 		Window* m_window;
-		RHIState m_state;
+		RHIState m_state;   //状态缓存
 
 		struct Impl;
 		Impl* m_impl;
