@@ -59,6 +59,8 @@ namespace volucris
 
 		bool setVector4Parameter(const std::string& name, const glm::vec4& value);
 
+		bool setMat4Parameter(const std::string& name, const glm::mat4& value);
+
 		bool setTexture2DParameter(const std::string& name, const SoftObject<Texture2D>& value);
 
 		std::string getClassName() const override { return "MaterialInstance"; }
@@ -87,6 +89,7 @@ namespace volucris
 		std::vector<MaterialFloatParameter> m_floatParameters;
 		std::vector<MaterialIntParameter> m_intParameters;
 		std::vector<MaterialVector4Parameter> m_vec4Parameters;
+		std::vector<MaterialMat4Parameter> m_mat4Parameters;
 		std::vector<MaterialTexture2DParameter> m_texture2dParameters;
 		std::weak_ptr<MaterialProxy> m_proxy;
 	};

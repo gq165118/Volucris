@@ -290,9 +290,12 @@ namespace volucris
 					std::string path = package->getAssetData().path;
 					std::string className = package->getAssetData().className;
 					GUID guid = package->getAssetData().guid;
+
+					AtlasManager::Get().initializeAtlas();
+					AtlasManager::Get().setCurTexture(texture);
 					if (AtlasManager::Get().registerTexture(path, className, guid))
 					{
-						AtlasManager::Get().setCurTexture(texture);
+
 					}
 					else
 					{

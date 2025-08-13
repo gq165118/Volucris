@@ -35,44 +35,44 @@ namespace fs = std::filesystem;
 
 namespace volucris
 {
-    struct CreateEditorViewTask
-    {
-        mutable std::unique_ptr<EditorView> view;
-        Size size;
-        EditorWindow* client;
+    //struct CreateEditorViewTask
+    //{
+    //    mutable std::unique_ptr<EditorView> view;
+    //    Size size;
+    //    EditorWindow* client;
 
-        CreateEditorViewTask(std::unique_ptr<EditorView> v, Size s)
-            : view(std::move(v)), size(s), client(nullptr) {}
+    //    CreateEditorViewTask(std::unique_ptr<EditorView> v, Size s)
+    //        : view(std::move(v)), size(s), client(nullptr) {}
 
-        CreateEditorViewTask(const CreateEditorViewTask& task)
-        {
-            view = std::move(task.view);
-            size = task.size;
-            client = nullptr;
-        }
+    //    CreateEditorViewTask(const CreateEditorViewTask& task)
+    //    {
+    //        view = std::move(task.view);
+    //        size = task.size;
+    //        client = nullptr;
+    //    }
 
-        CreateEditorViewTask(CreateEditorViewTask&& task) noexcept
-            : view(std::move(task.view)), size(task.size), client(task.client)
-        {
-        }
+    //    CreateEditorViewTask(CreateEditorViewTask&& task) noexcept
+    //        : view(std::move(task.view)), size(task.size), client(task.client)
+    //    {
+    //    }
 
-        void execute()
-        {
-            //view->resize(size.width, size.height);
-            view->buildData();
-            auto v = view.get();
-            Renderer::getInstance().addView(std::move(view));
-            Renderer::getInstance().renderFrame();
-            Renderer::getInstance().renderFrame();
-            if (client)
-            {
-                auto data = v->getViewData();
-                gApp->pushCommand([client = client, data = std::move(data)]() {
-                    client->setViewData(std::move(data));
-                    });
-            }
-        }
-    };
+    //    void execute()
+    //    {
+    //        //view->resize(size.width, size.height);
+    //        view->buildData();
+    //        auto v = view.get();
+    //        Renderer::getInstance().addView(std::move(view));
+    //        Renderer::getInstance().renderFrame();
+    //        Renderer::getInstance().renderFrame();
+    //        if (client)
+    //        {
+    //            auto data = v->getViewData();
+    //            gApp->pushCommand([client = client, data = std::move(data)]() {
+    //                client->setViewData(std::move(data));
+    //                });
+    //        }
+    //    }
+    //};
 
 
     MainWidget::MainWidget()

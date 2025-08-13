@@ -299,6 +299,20 @@ namespace volucris
 		return false;
 	}
 
+	bool MaterialInstance::setMat4Parameter(const std::string& name, const glm::mat4& value)
+	{
+		for (auto& param : m_mat4Parameters)
+		{
+			if (param.getName() == name)
+			{
+				param.setValue(value);
+				markDirty(true);
+				return true;
+			}
+		}
+		return false;
+	}
+
 	bool MaterialInstance::setTexture2DParameter(const std::string& name, const SoftObject<Texture2D>& value)
 	{
 		for (auto& param : m_texture2dParameters)

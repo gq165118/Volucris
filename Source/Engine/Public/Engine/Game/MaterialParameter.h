@@ -217,6 +217,7 @@ namespace volucris
 	using MaterialFloatParameter = MaterialParameterTemplate<float>;
 	using MaterialIntParameter = MaterialParameterTemplate<uint32>;
 	using MaterialVector4Parameter = MaterialParameterTemplate<glm::vec4>;
+	using MaterialMat4Parameter = MaterialParameterTemplate<glm::mat4>;
 	using MaterialTexture2DParameter = MaterialParameterTemplate<SoftObject<Texture2D>>;
 }
 

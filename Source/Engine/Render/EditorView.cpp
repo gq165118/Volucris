@@ -13,25 +13,174 @@
 #include <glad/glad.h>
 #include <Engine/Render/StaticMeshProxy.h>
 #include <RHI/RHIOpenGL.h>
+#include <Engine/Render/Scene.h>
+#include <Engine/Render/PrimitiveSceneProxy.h>
+#include <Engine/Render/MaterialInstanceProxy.h>>
 
 constexpr int FrameCount = 1;
-#define  ATLAS_SIZE  256
+#define  ATLAS_SIZE  2048
 
 namespace volucris
 {
 #if 1
+
+	EditorView::EditorView()
+		:BaseView()
+		//: m_targets()
+		//, m_targetReaders()
+		//, m_targetData()
+		//, m_current(0)
+		, m_proxy(nullptr)
+	{
+	}
+
+	//EditorView::EditorView(const std::shared_ptr<Scene>& scene)
+	//	: EditorView()
+	//{
+	//	//m_scene = scene;
+	//}
+
+	EditorView::EditorView(const std::shared_ptr<PrimitiveSceneProxy>& proxy) 
+		: BaseView()
+	{
+		m_proxy = proxy;
+	}
+
+
+	//EditorView::~EditorView()
+	//{
+	//	for (auto& target : m_targets)
+	//	{
+	//		RHICmdList->unsetRenderTarget(target.get());
+	//	}
+	//}
+
+	void EditorView::init()
+	{
+
+	}
+
+	void EditorView::setTextureProxy(std::shared_ptr<Texture2DProxy> tex)
+	{
+		m_texture = tex;
+	}
+
+	void EditorView::buildData()
+	{
+		for (auto& target : m_targets)
+		{
+			RHICmdList->unsetRenderTarget(target.get());
+		}
+		
+		m_targets.clear();
+		m_targetReaders.clear();
+		
+		int width, height;
+		width = height = ATLAS_SIZE;
+		//width = 144;  height = 153;
+		width = 2048;  height = 2048;
+
+		RHITextureDesc desc;
+		desc.size = { width, height };
+		desc.pixelFormat = Texture::EPixelFormat::R8G8B8;
+		
+		auto size = 3 * width * height;
+		m_targetData.format = getSourceFormat(desc.pixelFormat);
+		m_targetData.size = { width, height };
+		m_targetData.data.resize(size);
+		
+		for (int i = 0; i < FrameCount; ++i)
+		{
+			// 初始化贴图
+			auto texture = std::make_shared<RHITexture2D>(desc);
+			texture->setContext(RHICmdList);
+			texture->createGpuResource();
+			RHICmdList->setTexture2D(texture.get());
+			texture->init();
+		
+			auto target = std::make_unique<RHIRenderTarget>(Size(width, height));
+			target->setContext(RHICmdList);
+			target->createGpuResource();
+			RHICmdList->setRenderTarget(target.get());
+			target->attachColor(texture, 0);
+			//target->attachColor(m_texture->getTexture(), 0);
+			v_check(target->update())
+				m_targets.emplace_back(std::move(target));
+		
+			auto reader = std::make_unique<RHIReadPixelBuffer>(RHIBuffer::StreamRead);
+			reader->setContext(RHICmdList);
+			reader->createGpuResource();
+			reader->bindTexture(texture);
+			//reader->bindTexture(m_texture->getTexture());
+			v_check(RHICmdList->setBuffer(reader.get()))
+				reader->init(nullptr, (uint32)size);
+			m_targetReaders.emplace_back(std::move(reader));
+		}
+		
+		m_current = 0;
+	}
+
+	void EditorView::render(RHICommandList* cmdList)
+	{
+		RENDER_SCOPE(EditorView);
+		RHIClearState state;
+		state.color = { 0.0, 0.8, 1.0, 1.0 };
+		cmdList->clear(state);
+
+		for (const auto& info : m_proxy->getPrimitiveDrawInfos())
+		{
+			info.material->use(RHICmdList);
+			//glViewport(0,0, 0, 128);
+			cmdList->drawPrimitive(info.vao, info.ebo, info.mesh);
+		}
+
+		//for (const auto& primitive : m_scene->getPrimitives())
+		//{
+		//	for (const auto& info : primitive->getPrimitiveDrawInfos())
+		//	{
+		//		info.material->use(RHICmdList);
+		//		cmdList->drawPrimitive(info.vao, info.ebo, info.mesh);
+		//	}
+		//}
+	}
+
+	//void EditorView::bindTarget(RHICommandList* cmdList)
+	//{
+	//	Rect rect = { 0,0,0,0 };
+	//	rect.setSize(m_targets[m_current]->getSize());
+	//	cmdList->setRenderTarget(m_targets[m_current].get(), rect);
+	//}
+	
+	void EditorView::swapViewData(RHICommandList* cmdList)
+	{
+		Rect rect = { 0,0,0,0 };
+		rect.setSize(m_targets[m_current]->getSize());
+	
+		//int next = (m_current + 1) % FrameCount;
+		//m_targetReaders[next]->startRead(rect);
+		m_targetReaders[0]->startRead(rect);
+	
+		m_targetReaders[m_current]->readColorTo(m_targetData.data);
+		//m_current = next;
+	}
+
+#else
 	static std::shared_ptr<StaticMeshProxy> mesh = nullptr;
 	static std::shared_ptr<RHIProgram> shader = nullptr;
 
 	static glm::vec3 vertices[] = {
-		{-0.5f, -0.5f, 1.0f},
+		/*{-0.5f, -0.5f, 1.0f},
 		{ 0.5f, -0.5f, 1.0f},
 		{ 0.5f,  0.5f, 1.0f},
 		{-0.5f,  0.5f, 1.0f},
 		{ 1.0f,  0.0f, 0.0f},
 		{ 0.0f,  1.0f, 0.0f},
 		{ 0.0f,  0.0f, 1.0f},
-		{ 1.0f,  0.0f, 1.0f},
+		{ 1.0f,  0.0f, 1.0f},*/
+		  {-1, -1, 0.0},
+		  {1, -1, 0.0},
+		  {1, 1, 0.0},
+		  {-1, 1, 0.0}
 	};
 
 	static uint32 indices[] = {
@@ -213,8 +362,6 @@ namespace volucris
 	//	m_current = next;
 	//	GL_CHECK();
 	//}
-
-#else
 
 #endif
 }

@@ -20,7 +20,7 @@ namespace volucris
 
 		BaseView(const std::shared_ptr<Scene>& scene);
 
-		~BaseView();
+		virtual ~BaseView();
 
 		virtual void init() {}
 
@@ -30,7 +30,7 @@ namespace volucris
 
 		void bindTarget(RHICommandList* cmdList);
 
-		void swapViewData(RHICommandList* cmdList);
+		virtual void swapViewData(RHICommandList* cmdList);
 
 		Texture::TextureData getViewData() const
 		{
@@ -39,7 +39,7 @@ namespace volucris
 
 		const std::shared_ptr<Scene>& getScene() const { return m_scene; }
 
-	private:
+	public:
 		std::vector<std::unique_ptr<RHIRenderTarget>> m_targets;
 		std::vector<std::unique_ptr<RHIReadPixelBuffer>> m_targetReaders;
 		Texture::TextureData m_targetData;

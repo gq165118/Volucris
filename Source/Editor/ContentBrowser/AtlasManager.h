@@ -14,6 +14,17 @@ namespace volucris
     // 贴图槽信息
     struct TextureSlot
     {
+        TextureSlot()
+            :X(0)
+            ,Y(0)
+            ,bOccupied(false)
+        {}
+
+        TextureSlot(int32 x, int32 y, bool occupied)
+            :X(x), Y(y), bOccupied(occupied)
+        {
+        }
+
         int32 X;
         int32 Y;
         bool bOccupied;
@@ -33,6 +44,12 @@ namespace volucris
     public:
         // 单例访问
         static AtlasManager& Get();
+
+        bool ensureTextureUV(const GUID& inGuid,
+                             const std::string& inPath,
+                             const std::string& inClassName,
+                             std::shared_ptr<Texture2D> inTex,
+                             glm::vec4& outUV);
 
         // 初始化Atlas
         void initializeAtlas(int32 inAtlasSize = 2048, int32 inSlotSize = 128);
@@ -54,10 +71,10 @@ namespace volucris
         AtlasManager();
 
         // 查找空闲槽位
-        bool findFreeSlot(TextureSlot& outSlot);
+        bool findFreeSlot(TextureSlot& outSlot, int32 index);
 
         // 绘制贴图到Atlas
-        void drawTextureToAtlas(const TextureResourceinfo& ininfo);
+        void drawTextureToAtlas(const TextureResourceinfo& ininfo, int32 index);
 
         // Atlas尺寸
         int32 m_atlasSize;
