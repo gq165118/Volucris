@@ -95,7 +95,7 @@ namespace volucris
 		RHIState m_state;   //状态缓存
 
 		struct Impl;
-		Impl* m_impl;
+		Impl* m_impl;	//标记glclear
 	};
 }
 

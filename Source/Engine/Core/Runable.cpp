@@ -73,7 +73,7 @@ namespace volucris
 			}
 
 			V_LOG_INFO(Engine, "destroy thread")
-			destroy();
+			destroy();	//清理renderer 的view cmdList等对象
 			V_LOG_INFO(Engine, "quit thread")
 			m_quitFence->signal();
 			});
