@@ -24,9 +24,9 @@ namespace volucris
 
 		void init() override;
 
-		void setTextureProxy(std::shared_ptr<Texture2DProxy> tex);
+		//void setTextureProxy(std::shared_ptr<Texture2DProxy> tex);
 
-		void buildData();
+		void buildData(std::shared_ptr<RHITexture2D> texture1, std::vector<uint8_t> data, std::unique_ptr<RHIRenderTarget> target1);
 
 		void render(RHICommandList* cmdList) override;
 
@@ -45,8 +45,10 @@ namespace volucris
 		Texture::TextureData m_targetData;
 		int m_current;*/
 		//std::shared_ptr<Scene> m_scene;
+		std::unique_ptr<RHIRenderTarget> m_target;
+		std::shared_ptr<RHITexture2D> m_texture;
 		std::shared_ptr<PrimitiveSceneProxy> m_proxy;
-		std::shared_ptr<Texture2DProxy> m_texture;
+		std::shared_ptr<Texture2DProxy> m_textureProxy;
 
 		bool  m_isSaved;   //测试用
 	};

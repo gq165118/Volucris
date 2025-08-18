@@ -292,8 +292,9 @@ namespace volucris
 					GUID guid = package->getAssetData().guid;
 
 					AtlasManager::Get().initializeAtlas();
-					AtlasManager::Get().setCurTexture(texture);
-					if (AtlasManager::Get().registerTexture(path, className, guid))
+					//AtlasManager::Get().setCurTexture(texture);
+					//AtlasManager::Get().initializeAtlas();
+					if (AtlasManager::Get().registerTexture(path, className, guid, texture))
 					{
 
 					}

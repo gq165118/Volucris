@@ -60,12 +60,12 @@ namespace volucris
 
 	}
 
-	void EditorView::setTextureProxy(std::shared_ptr<Texture2DProxy> tex)
-	{
-		m_texture = tex;
-	}
+	//void EditorView::setTextureProxy(std::shared_ptr<Texture2DProxy> tex)
+	//{
+	//	m_texture = tex;
+	//}
 
-	void EditorView::buildData()
+	void EditorView::buildData(std::shared_ptr<RHITexture2D> texture, std::vector<uint8_t> data,std::unique_ptr<RHIRenderTarget> target1)
 	{
 		for (auto& target : m_targets)
 		{
@@ -91,12 +91,19 @@ namespace volucris
 		
 		for (int i = 0; i < FrameCount; ++i)
 		{
-			// 初始化贴图
-			auto texture = std::make_shared<RHITexture2D>(desc);
+			//初始化贴图
+			//auto texture = std::make_shared<RHITexture2D>(desc);
 			texture->setContext(RHICmdList);
 			texture->createGpuResource();
 			RHICmdList->setTexture2D(texture.get());
-			texture->init();
+			if (!data.empty())
+			{
+				texture->init(data);
+			}
+			else
+			{
+				texture->init();
+			}
 		
 			auto target = std::make_unique<RHIRenderTarget>(Size(width, height));
 			target->setContext(RHICmdList);
@@ -125,7 +132,7 @@ namespace volucris
 		RENDER_SCOPE(EditorView);
 		RHIClearState state;
 		state.color = { 0.0, 0.8, 1.0, 1.0 };
-		cmdList->clear(state);
+		//cmdList->clear(state);
 
 		for (const auto& info : m_proxy->getPrimitiveDrawInfos())
 		{

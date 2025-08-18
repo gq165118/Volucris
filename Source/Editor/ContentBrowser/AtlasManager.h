@@ -55,7 +55,7 @@ namespace volucris
         void initializeAtlas(int32 inAtlasSize = 2048, int32 inSlotSize = 128);
 
         // 注册贴图资源
-        bool registerTexture(const std::string& inPath, const std::string& inClassName, const GUID& inGuid);
+        bool registerTexture(const std::string& inPath, const std::string& inClassName, const GUID& inGuid, std::shared_ptr<Texture2D> inTex);
 
         // 获取贴图在Atlas中的UV范围
         bool getTextureUV(const GUID& inGuid, glm::vec4& outUV) const;
@@ -71,7 +71,9 @@ namespace volucris
         AtlasManager();
 
         // 查找空闲槽位
-        bool findFreeSlot(TextureSlot& outSlot, int32 index);
+        bool findFreeSlot(TextureSlot& outSlot, int32& index);
+
+        bool loadAtlasFromPNG(const std::string& path);
 
         // 绘制贴图到Atlas
         void drawTextureToAtlas(const TextureResourceinfo& ininfo, int32 index);
@@ -96,6 +98,11 @@ namespace volucris
 
         //当前需要绘制到atlas上的贴图
         std::shared_ptr<Texture2D> m_currentTexture;
+
+        //存储加载atlas的数据
+        std::vector<uint8_t> m_data;
+        int32 m_width = 0;
+        int32 m_height = 0;
     };
 }
 
